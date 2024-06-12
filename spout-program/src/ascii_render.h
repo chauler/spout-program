@@ -17,7 +17,7 @@
 
 class ascii_render {
 public:
-	ascii_render(GLFWwindow* window) : window(window) {
+	ascii_render(GLFWwindow* window) : window(window), m_charset(" .',:;clxokXdO0KN") {
 		int window_w, window_h = 0;
 		glfwGetWindowSize(window, &window_w, &window_h);
 		m_projection = glm::ortho(0.0f, static_cast<float>(window_w), 0.0f, static_cast<float>(window_h));
@@ -43,6 +43,7 @@ public:
 private:
 	void UpdateProjection();
 	std::string PixelsToString();
+	std::string m_charset{};
 	const char* vertexShaderSource = "";
 	const char* fragShaderSource = "";
 	unsigned int fragShader, vertexShader, shaderProgram = 0;

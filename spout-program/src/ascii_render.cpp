@@ -34,11 +34,14 @@ std::string ascii_render::PixelsToString()
 	unsigned char* pixelPtr = m_inputImage.data;
 	int channels = m_inputImage.channels();
 	unsigned char pixel = '\0';
+	std::string output{};
 	for (int i = 0; i < m_inputImage.rows; i++) {
 		for (int j = 0; j < m_inputImage.cols; j++) {
 			pixel = pixelPtr[i*m_inputImage.cols + j];
-			std::cout << (unsigned int)pixel << std::endl;
+			unsigned int index = (unsigned int)pixel / 16;
+			output+=m_charset[index];
 		}
 	}
-	return std::string();
+	std::cout << output << std::endl;
+	return output;
 }

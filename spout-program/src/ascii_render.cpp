@@ -6,13 +6,18 @@
 #include "imgui/imgui_impl_opengl3.h"
 
 void ascii_render::Draw() {
-	PixelsToString();
+	std::string output = PixelsToString();
 	UpdateProjection();
 	shader.Bind();
-	GLCall(glUniformMatrix4fv(glGetUniformLocation(shader.GetProgram(), "projection"), 1, NULL, glm::value_ptr(m_projection)));
-	for (auto character : characters) {
-		character.Draw();
+	GLCall(glUniformMatrix4fv(shader.GetUniform("projection"), 1, NULL, glm::value_ptr(m_projection)));
+	for (int i = 0; i < output.length(); i++) {
+		char character = output[i];
+		auto data = m_characterData[character];
+		m_character.UpdateData(data, i);
+		m_character.Draw();
+		//break;
 	}
+	m_character.ResetPosition(m_win_w, m_win_h);
 	shader.Unbind();
 }
 
@@ -24,9 +29,8 @@ void ascii_render::UpdateImage(const cv::Mat image)
 }
 
 void ascii_render::UpdateProjection() {
-	int window_w, window_h = 0;
-	GLCall(glfwGetWindowSize(window, &window_w, &window_h));
-	m_projection = glm::ortho(0.0f, static_cast<float>(window_w), 0.0f, static_cast<float>(window_h));
+	GLCall(glfwGetWindowSize(window, &m_win_w, &m_win_h));
+	m_projection = glm::ortho(0.0f, static_cast<float>(m_win_w), 0.0f, static_cast<float>(m_win_h));
 }
 
 std::string ascii_render::PixelsToString()
@@ -38,10 +42,40 @@ std::string ascii_render::PixelsToString()
 	for (int i = 0; i < m_inputImage.rows; i++) {
 		for (int j = 0; j < m_inputImage.cols; j++) {
 			pixel = pixelPtr[i*m_inputImage.cols + j];
-			unsigned int index = (unsigned int)pixel / 16;
+			unsigned int index = (unsigned int)pixel / (255 / m_charset.length());
 			output+=m_charset[index];
 		}
 	}
-	std::cout << output << std::endl;
 	return output;
+}
+
+void ascii_render::LoadCharacterData()
+{
+	for (char character : m_charset) {
+		FT_Set_Pixel_Sizes(m_face, 0, 100);
+		unsigned int glyph_index = FT_Get_Char_Index(m_face, character);
+		FT_Load_Glyph(m_face, glyph_index, FT_LOAD_RENDER);
+		CharacterData data{};
+		GLCall(glGenTextures(1, &data.textureID));
+		GLCall(glBindTexture(GL_TEXTURE_2D, data.textureID));
+		GLCall(glTexImage2D(GL_TEXTURE_2D,
+			0,
+			GL_RED,
+			m_face->glyph->bitmap.width,
+			m_face->glyph->bitmap.rows,
+			0,
+			GL_RED,
+			GL_UNSIGNED_BYTE,
+			m_face->glyph->bitmap.buffer
+		));
+		data.size = glm::ivec2(m_face->glyph->bitmap.width, m_face->glyph->bitmap.rows);
+		data.bearing = glm::ivec2(m_face->glyph->bitmap_left, m_face->glyph->bitmap_top);
+		data.advance = m_face->glyph->advance.x;
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		GLCall(glBindTexture(GL_TEXTURE_2D, 0));
+		m_characterData.insert(std::pair<char, CharacterData>(character, data));
+	}
 }

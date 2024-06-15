@@ -53,3 +53,17 @@ void Shader::Bind() {
 void Shader::Unbind() {
 	GLCall(glUseProgram(0));
 }
+
+GLint Shader::GetUniform(std::string name) {
+	auto it = m_uniforms.find(name);
+	unsigned int uniformID = 0;
+	//Uniform position already stored
+	if (it != m_uniforms.end()) {
+		return m_uniforms[name];
+	}
+	else { //Uniform position not yet accessed and stored
+		uniformID = glGetUniformLocation(m_programID, name.c_str());
+		m_uniforms.insert(std::pair<std::string, unsigned int>(name, uniformID));
+		return uniformID;
+	}
+}

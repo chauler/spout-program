@@ -2,6 +2,7 @@
 #include "Renderer.h"
 #include "Character.h"
 #include "ft2build.h"
+#include "glm/gtc/matrix_transform.hpp"
 #include FT_FREETYPE_H
 
 void Character::Draw()
@@ -24,31 +25,35 @@ void Character::Init(FT_Face face)
 	GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(m_vertices), m_vertices, GL_DYNAMIC_DRAW));
 	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO));
 	GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_DYNAMIC_DRAW));
-	GLCall(glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)0));
+	GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)0));
 	GLCall(glEnableVertexAttribArray(0));
 	GLCall(glBindVertexArray(0));
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-	
-	FT_Set_Pixel_Sizes(face, 0, 500);
-	unsigned int glyph_index = FT_Get_Char_Index(face, 'A');
-	FT_Load_Glyph(face, glyph_index, FT_LOAD_RENDER);
+}
 
-	GLCall(glGenTextures(1, &m_texture));
-	GLCall(glBindTexture(GL_TEXTURE_2D, m_texture));
-	GLCall(glTexImage2D(GL_TEXTURE_2D,
-		0,
-		GL_RED,
-		face->glyph->bitmap.width,
-		face->glyph->bitmap.rows,
-		0,
-		GL_RED,
-		GL_UNSIGNED_BYTE,
-		face->glyph->bitmap.buffer
-	));
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	GLCall(glBindTexture(GL_TEXTURE_2D, 0));
+void Character::UpdateData(const CharacterData& charData, int index) {
+	if (index%100 == 0) {
+		m_vertices[0] = { 0.0f,  m_vertices[0].y - 12.0f};
+		m_vertices[1] = { 0.0f, m_vertices[1].y - 12.0f};
+		m_vertices[2] = { 10.0f, m_vertices[2].y - 12.0f};
+		m_vertices[3] = { 10.0f,  m_vertices[3].y - 12.0f};
+	}
+	else {
+		m_vertices[0].x += 12.0f;
+		m_vertices[1].x += 12.0f;
+		m_vertices[2].x += 12.0f;
+		m_vertices[3].x += 12.0f;
+	}
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_VBO));
+	GLCall(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(m_vertices), m_vertices));
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
+	m_texture = charData.textureID;
+}
+
+void Character::ResetPosition(int width, int height) {
+	m_vertices[0] = { 0.0f,  (float)height};
+		m_vertices[1] = { 0.0f, (float)height-10};
+		m_vertices[2] = { 10.0f, (float)height-10};
+		m_vertices[3] = { 10.0f,  (float)height};
 }

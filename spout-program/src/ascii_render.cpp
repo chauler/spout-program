@@ -9,16 +9,17 @@ void ascii_render::Draw() {
 	std::string output = PixelsToString();
 	UpdateProjection();
 	shader.Bind();
+	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, m_textArray));
 	GLCall(glUniformMatrix4fv(shader.GetUniform("projection"), 1, NULL, glm::value_ptr(m_projection)));
 	for (int i = 0; i < output.length(); i++) {
 		char character = output[i];
 		auto data = m_characterData[character];
-		m_character.UpdateData(data, i);
+		m_character.UpdateData(data, i, m_charset.find(character));
 		m_character.Draw();
-		//break;
 	}
 	m_character.ResetPosition(m_win_w, m_win_h);
 	shader.Unbind();
+	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));
 }
 
 void ascii_render::UpdateImage(const cv::Mat image)
@@ -51,19 +52,47 @@ std::string ascii_render::PixelsToString()
 
 void ascii_render::LoadCharacterData()
 {
-	for (char character : m_charset) {
-		FT_Set_Pixel_Sizes(m_face, 0, 100);
+	unsigned int textSize = 100;
+	GLCall(glGenTextures(1, &m_textArray));
+	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, m_textArray));
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	GLCall(glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_R8, textSize, textSize, m_charset.length()));
+	for (int i = 0; i < m_charset.length(); i++) {
+		char character = m_charset[i];
+		FT_Set_Pixel_Sizes(m_face, 0, textSize);
 		unsigned int glyph_index = FT_Get_Char_Index(m_face, character);
-		FT_Load_Glyph(m_face, glyph_index, FT_LOAD_RENDER);
+		FT_Load_Glyph(m_face, glyph_index, FT_LOAD_DEFAULT);
+		FT_Render_Glyph(m_face->glyph, FT_RENDER_MODE_NORMAL);
 		CharacterData data{};
-		GLCall(glGenTextures(1, &data.textureID));
-		GLCall(glBindTexture(GL_TEXTURE_2D, data.textureID));
-		GLCall(glTexImage2D(GL_TEXTURE_2D,
+		GLCall(glTexSubImage3D(GL_TEXTURE_2D_ARRAY,
 			0,
-			GL_RED,
+			0,
+			0,
+			i,
 			m_face->glyph->bitmap.width,
 			m_face->glyph->bitmap.rows,
+			1,
+			GL_RED,
+			GL_UNSIGNED_BYTE,
+			m_face->glyph->bitmap.buffer
+			));
+		GLCall(glGenTextures(1, &data.textureID));
+		GLCall(glBindTexture(GL_TEXTURE_2D, data.textureID));
+		GLCall(glTexStorage2D(GL_TEXTURE_2D,
+			1,
+			GL_R8,
+			textSize,
+			textSize
+		));
+		GLCall(glTexSubImage2D(GL_TEXTURE_2D,
 			0,
+			0,
+			0,
+			m_face->glyph->bitmap.width,
+			m_face->glyph->bitmap.rows,
 			GL_RED,
 			GL_UNSIGNED_BYTE,
 			m_face->glyph->bitmap.buffer
@@ -78,4 +107,5 @@ void ascii_render::LoadCharacterData()
 		GLCall(glBindTexture(GL_TEXTURE_2D, 0));
 		m_characterData.insert(std::pair<char, CharacterData>(character, data));
 	}
+	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));
 }

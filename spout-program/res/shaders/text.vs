@@ -1,5 +1,5 @@
 #version 330 core
-layout (location = 0) in vec2 vertex; // <vec2 pos>
+layout (location = 0) in vec3 vertex; // <vec2 pos, vec1 texArrayIndex>
 
 const vec2 vertices[] = vec2[](
 	vec2(0.0, 0.0), 
@@ -10,12 +10,12 @@ const vec2 vertices[] = vec2[](
 	vec2(1.0, 0.0)
 );
 
-out vec2 TexCoords;
+out vec3 TexCoords;
 
 uniform mat4 projection;
 
 void main()
 {
     gl_Position = projection * vec4(vertex.xy, 0.0, 1.0);
-    TexCoords = vertices[gl_VertexID];
+    TexCoords = vec3(vertices[gl_VertexID], vertex.z);
 }  

@@ -51,7 +51,7 @@ private:
 	std::string m_characters;
 	std::map<char, CharacterData> m_characterData;
 	Character m_character;
-	unsigned int m_inputTexture;
+	unsigned int m_inputTexture, m_textArray;
 	cv::Mat m_inputImage;
 	glm::mat4 m_projection;
 	unsigned int m_img_w, m_img_h = 0;

@@ -7,8 +7,9 @@
 struct vertex {
 	float x;
 	float y;
-	float texX;
-	float texY;
+	//float texX;
+	//float texY;
+	float texArrayIndex;
 };
 
 struct CharacterData {
@@ -23,15 +24,15 @@ public:
 	//Character();
 	void Draw();
 	void Init(FT_Face);
-	void UpdateData(const CharacterData&, int);
+	void UpdateData(const CharacterData&, int, unsigned int);
 	void ResetPosition(int, int);
 private:
 	unsigned int m_texture, m_VBO, m_VAO, m_EBO = 0;
 	vertex m_vertices[4] = {
-		{100.0f,  1320.0f},
-		{100.0f, 210.0f},
-		{610.0f, 210.0f},
-		{610.0f,  1320.0f}
+		{100.0f,  1320.0f, 15.0f},
+		{100.0f, 210.0f, 15.0f},
+		{610.0f, 210.0f, 15.0f},
+		{610.0f,  1320.0f, 15.0f}
 	};
 	unsigned int indices[6] = { 0, 1, 3, 1, 2, 3 };
 

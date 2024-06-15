@@ -39,7 +39,7 @@ void cleanup(GLFWwindow* window) {
     glfwTerminate();
 }
 
-cv::Mat GetImageFromTexture(GLuint);
+cv::Mat GetImageFromTexture(const GLuint, const unsigned int, const unsigned int);
 
 // Main code
 int main(int, char**)
@@ -122,7 +122,7 @@ int main(int, char**)
     ImVec4 bg_color = ImVec4(1.00f, 0.55f, 0.60f, 0.00f);
     ascii_render ascii{window};
     // Main loop
-    cv::namedWindow("Display window", cv::WINDOW_AUTOSIZE);
+    //cv::namedWindow("Display window", cv::WINDOW_AUTOSIZE);
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
@@ -173,8 +173,8 @@ int main(int, char**)
         glClearColor(bg_color.x * bg_color.w, bg_color.y * bg_color.w, bg_color.z * bg_color.w, bg_color.w);
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        cv::Mat mat = GetImageFromTexture(image);
-        cv::imshow("Display window", mat);
+        cv::Mat mat = GetImageFromTexture(image, 100, 100);
+        //cv::imshow("Display window", mat);
         ascii.UpdateImage(mat);
         ascii.Draw();
         glfwSwapBuffers(window);
@@ -184,7 +184,7 @@ int main(int, char**)
     return 0;
 }
 
-cv::Mat GetImageFromTexture(GLuint texID) {
+cv::Mat GetImageFromTexture(const GLuint texID, const unsigned int width, const unsigned int height) {
     glBindTexture(GL_TEXTURE_2D, texID);
     GLenum gl_texture_width, gl_texture_height;
 
@@ -194,7 +194,8 @@ cv::Mat GetImageFromTexture(GLuint texID) {
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glPixelStorei(GL_PACK_ROW_LENGTH, image.step / image.elemSize());
     glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.data);
-    cv::resize(image, image, cv::Size(100, 100));
+    glBindTexture(GL_TEXTURE_2D, 0);
+    cv::resize(image, image, cv::Size(width, height));
     cv::cvtColor(image, image, cv::COLOR_RGBA2GRAY);
     return image;
 }

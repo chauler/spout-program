@@ -7,17 +7,21 @@
 
 void ascii_render::Draw() {
 	std::string output = PixelsToString();
+	for (int i = 0; i < output.length(); i++) {
+		m_positions[i].texArrayIndex = m_charset.find(output[i]);
+	}
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_iVBO));
+	GLCall(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(m_positions), m_positions));
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 	UpdateProjection();
 	shader.Bind();
 	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, m_textArray));
 	GLCall(glUniformMatrix4fv(shader.GetUniform("projection"), 1, NULL, glm::value_ptr(m_projection)));
-	for (int i = 0; i < output.length(); i++) {
-		char character = output[i];
-		auto data = m_characterData[character];
-		m_character.UpdateData(data, i, m_charset.find(character));
-		m_character.Draw();
-	}
-	m_character.ResetPosition(m_win_w, m_win_h);
+	GLCall(glUniform2f(shader.GetUniform("windowDims"), m_win_w, m_win_h));
+	GLCall(glActiveTexture(GL_TEXTURE0));
+	GLCall(glBindVertexArray(m_VAO));
+	GLCall(glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, output.length()));
+	GLCall(glBindVertexArray(0));
 	shader.Unbind();
 	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));
 }

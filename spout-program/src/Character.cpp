@@ -10,7 +10,8 @@ void Character::Draw()
 	GLCall(glActiveTexture(GL_TEXTURE0));
 	GLCall(glBindVertexArray(m_VAO));
 	//GLCall(glBindTexture(GL_TEXTURE_2D, m_texture));
-	GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
+	//GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
+	GLCall(glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, 2));
 	//GLCall(glBindTexture(GL_TEXTURE_2D, 0));
 	GLCall(glBindVertexArray(0));
 }

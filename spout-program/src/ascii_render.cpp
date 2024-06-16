@@ -5,7 +5,7 @@
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
 
-void ascii_render::Draw() {
+unsigned int ascii_render::Draw() {
 	std::string output = PixelsToString();
 	for (int i = 0; i < output.length(); i++) {
 		m_positions[i].texArrayIndex = m_charset.find(output[i]);
@@ -15,15 +15,23 @@ void ascii_render::Draw() {
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 	UpdateProjection();
 	shader.Bind();
-	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, m_textArray));
 	GLCall(glUniformMatrix4fv(shader.GetUniform("projection"), 1, NULL, glm::value_ptr(m_projection)));
 	GLCall(glUniform2f(shader.GetUniform("windowDims"), m_win_w, m_win_h));
+	GLCall(glUniform2f(shader.GetUniform("imgDims"), m_img_w, m_img_h));
 	GLCall(glActiveTexture(GL_TEXTURE0));
 	GLCall(glBindVertexArray(m_VAO));
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_FBO));
+	GLCall(glBindTexture(GL_TEXTURE_2D, m_outTex));
+	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_win_w, m_win_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
+	glClear(GL_COLOR_BUFFER_BIT);
+	GLCall(glViewport(0, 0, m_win_w, m_win_h));
+	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, m_textArray));
 	GLCall(glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, output.length()));
 	GLCall(glBindVertexArray(0));
 	shader.Unbind();
 	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+	return m_outTex;
 }
 
 void ascii_render::UpdateImage(const cv::Mat image)
@@ -63,7 +71,7 @@ void ascii_render::LoadCharacterData()
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	GLCall(glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_R8, textSize, textSize, m_charset.length()));
+	GLCall(glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_R8, 90, 90, m_charset.length()));
 	for (int i = 0; i < m_charset.length(); i++) {
 		char character = m_charset[i];
 		FT_Set_Pixel_Sizes(m_face, 0, textSize);
@@ -83,24 +91,6 @@ void ascii_render::LoadCharacterData()
 			GL_UNSIGNED_BYTE,
 			m_face->glyph->bitmap.buffer
 			));
-		GLCall(glGenTextures(1, &data.textureID));
-		GLCall(glBindTexture(GL_TEXTURE_2D, data.textureID));
-		GLCall(glTexStorage2D(GL_TEXTURE_2D,
-			1,
-			GL_R8,
-			textSize,
-			textSize
-		));
-		GLCall(glTexSubImage2D(GL_TEXTURE_2D,
-			0,
-			0,
-			0,
-			m_face->glyph->bitmap.width,
-			m_face->glyph->bitmap.rows,
-			GL_RED,
-			GL_UNSIGNED_BYTE,
-			m_face->glyph->bitmap.buffer
-		));
 		data.size = glm::ivec2(m_face->glyph->bitmap.width, m_face->glyph->bitmap.rows);
 		data.bearing = glm::ivec2(m_face->glyph->bitmap_left, m_face->glyph->bitmap_top);
 		data.advance = m_face->glyph->advance.x;

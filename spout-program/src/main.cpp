@@ -108,6 +108,9 @@ int main(int, char**)
     receiver = GetSpout();
     receiver->SetReceiverName("VTubeStudioSpout");
     GLuint image;
+    SPOUTLIBRARY* sender;
+    sender = GetSpout();
+    sender->SetSenderName("SpoutProgram");
     glGenTextures(1, &image);
     glBindTexture(GL_TEXTURE_2D, image);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1920, 1017, 0, GL_RGBA, GL_UNSIGNED_BYTE, (unsigned char*)malloc(1920 * 1017 * 4 * sizeof(unsigned char)));
@@ -176,7 +179,8 @@ int main(int, char**)
         cv::Mat mat = GetImageFromTexture(image, 100, 100);
         //cv::imshow("Display window", mat);
         ascii.UpdateImage(mat);
-        ascii.Draw();
+        unsigned int outputTex = ascii.Draw();
+        sender->SendTexture(outputTex, GL_TEXTURE_2D, display_w, display_h);
         glfwSwapBuffers(window);
         free(data);
     }

@@ -19,6 +19,7 @@
 class ascii_render {
 public:
 	ascii_render(GLFWwindow* window) : window(window), m_charset(" .',:;clxokXdO0KN") {
+		//m_positions = new vertex[m_img_w * m_img_h];
 		for (int i = 0; i < 100; i++) {
 			for (int j = 0; j < 100; j++) {
 				m_positions[i*100 + j] = {(float)j, (float)i, 15.0f};
@@ -41,6 +42,18 @@ public:
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		shader.Unbind();
 
+		GLCall(glGenFramebuffers(1, &m_FBO));
+		GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_FBO));
+		GLCall(glGenTextures(1, &m_outTex));
+		GLCall(glBindTexture(GL_TEXTURE_2D, m_outTex));
+		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_win_w, m_win_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		GLCall(glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_outTex, 0));
+		GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
+		GLCall(glDrawBuffers(1, DrawBuffers));
+		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+			exit(1);
 		GLCall(glGenBuffers(1, &m_VBO));
 		GLCall(glGenBuffers(1, &m_EBO));
 		GLCall(glGenVertexArrays(1, &m_VAO));
@@ -62,7 +75,7 @@ public:
 		GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 
 	}
-	void Draw();
+	unsigned int Draw();
 	void UpdateImage(const cv::Mat);
 private:
 	void UpdateProjection();
@@ -82,7 +95,7 @@ private:
 	GLFWwindow* window = nullptr;
 	int m_win_w, m_win_h = 0;
 	FT_Face m_face;
-	unsigned int m_VBO, m_VAO, m_EBO, m_iVBO = 0;
+	unsigned int m_VBO, m_VAO, m_EBO, m_iVBO, m_FBO, m_outTex = 0;
 	vertex m_vertices[4] = {
 		{0.0f,  10.0f, 15.0f},
 		{0.0f, 0.0f, 15.0f},
@@ -91,4 +104,5 @@ private:
 	};
 	unsigned int indices[6] = { 0, 1, 3, 1, 2, 3 };
 	vertex m_positions[10000];
+	float m_pixelSize = 10.0f;
 };

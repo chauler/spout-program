@@ -167,6 +167,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\App.cpp" />
     <ClCompile Include="src\ascii_render.cpp" />
     <ClCompile Include="src\Character.cpp" />
     <ClCompile Include="src\FontLoader.cpp" />
@@ -184,6 +185,7 @@
     <ClCompile Include="src\vendor\stb\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\App.h" />
     <ClInclude Include="src\ascii_render.h" />
     <ClInclude Include="src\Character.h" />
     <ClInclude Include="src\FontLoader.h" />

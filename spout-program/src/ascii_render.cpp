@@ -11,7 +11,7 @@ unsigned int ascii_render::Draw() {
 		m_positions[i].texArrayIndex = m_charset.find(output[i]);
 	}
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_iVBO));
-	GLCall(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(m_positions), m_positions));
+	GLCall(glBufferData(GL_ARRAY_BUFFER, m_img_h*m_img_w*sizeof(vertex), m_positions, GL_DYNAMIC_DRAW));
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 	UpdateProjection();
 	shader.Bind();
@@ -37,8 +37,19 @@ unsigned int ascii_render::Draw() {
 void ascii_render::UpdateImage(const cv::Mat image)
 {
 	m_inputImage = image;
+	//New img is different size to previously allocated.
+	//(Check for nullptr to not delete when uninitialized)
+	if (m_positions != nullptr && (image.cols != m_img_w || image.rows != m_img_h)) {
+		delete(m_positions);
+	}
 	m_img_w = image.cols;
 	m_img_h = image.rows;
+	m_positions = new vertex[m_img_w * m_img_h];
+	for (int row = 0; row < m_img_h; row++) {
+		for (int col = 0; col < m_img_w; col++) {
+			m_positions[row * m_img_w + col] = { (float)col, (float)row, 0.0f };
+		}
+	}
 }
 
 void ascii_render::UpdateProjection() {
@@ -59,6 +70,7 @@ std::string ascii_render::PixelsToString()
 			output+=m_charset[index];
 		}
 	}
+	assert(output.length() == m_img_h * m_img_w);
 	return output;
 }
 

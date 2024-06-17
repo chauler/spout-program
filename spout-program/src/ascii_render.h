@@ -18,14 +18,7 @@
 
 class ascii_render {
 public:
-	ascii_render(GLFWwindow* window) : window(window), m_charset(" .',:;clxokXdO0KN") {
-		//m_positions = new vertex[m_img_w * m_img_h];
-		for (int i = 0; i < 100; i++) {
-			for (int j = 0; j < 100; j++) {
-				m_positions[i*100 + j] = {(float)j, (float)i, 15.0f};
-			}
-		}
-		
+	ascii_render(GLFWwindow* window) : window(window), m_charset(" .',:;clxokXdO0KN") {	
 		glfwGetWindowSize(window, &m_win_w, &m_win_h);
 		m_projection = glm::ortho(0.0f, static_cast<float>(m_win_w), 0.0f, static_cast<float>(m_win_h));
 		fontLoader.LoadFace("res/fonts/arial.ttf");
@@ -103,6 +96,6 @@ private:
 		{10.0f,  10.0f, 15.0f}
 	};
 	unsigned int indices[6] = { 0, 1, 3, 1, 2, 3 };
-	vertex m_positions[10000];
+	vertex* m_positions;
 	float m_pixelSize = 10.0f;
 };

@@ -197,7 +197,7 @@ cv::Mat GetImageFromTexture(const GLuint texID, const unsigned int width, const 
     cv::Mat image(gl_texture_height, gl_texture_width, CV_8UC4);
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     //Temporarily removed. Performance consideration, but it causes crash when texture shrinks for some reason.
-    //glPixelStorei(GL_PACK_ROW_LENGTH, image.step / image.elemSize());
+    //glPixelStorei(GL_PACK_ROW_LENGTH, image.step[0] / image.elemSize());
     GLCall(glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.data));
     GLCall(glBindTexture(GL_TEXTURE_2D, 0));
     cv::resize(image, image, cv::Size(width, height));

@@ -5,6 +5,56 @@
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
 
+ascii_render::ascii_render(GLFWwindow* window) : window(window), m_charset(" .',:;clxokXdO0KN") {
+	glfwGetWindowSize(window, &m_win_w, &m_win_h);
+	fontLoader.LoadFace("res/fonts/arial.ttf");
+	m_face = fontLoader.GetFace();
+	LoadCharacterData();
+	shader.AddShader(GL_VERTEX_SHADER, "res/shaders/text.vs");
+	shader.AddShader(GL_FRAGMENT_SHADER, "res/shaders/text.fs");
+	shader.CompileShader();
+	shader.Bind();
+	GLCall(glUniformMatrix4fv(shader.GetUniform("projection"), 1, NULL, glm::value_ptr(glm::ortho(0.0f, static_cast<float>(m_win_w), 0.0f, static_cast<float>(m_win_h)))));
+	float textColor[3] = { 1.0f, 1.0f, 1.0f };
+	GLCall(glUniform3f(glGetUniformLocation(shader.GetProgram(), "textColor"), textColor[0], textColor[1], textColor[2]));
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	shader.Unbind();
+
+	GLCall(glGenFramebuffers(1, &m_FBO));
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_FBO));
+	GLCall(glGenTextures(1, &m_outTex));
+	GLCall(glBindTexture(GL_TEXTURE_2D, m_outTex));
+	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_win_w, m_win_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	GLCall(glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_outTex, 0));
+	GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
+	GLCall(glDrawBuffers(1, DrawBuffers));
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		exit(1);
+	GLCall(glGenBuffers(1, &m_VBO));
+	GLCall(glGenBuffers(1, &m_EBO));
+	GLCall(glGenVertexArrays(1, &m_VAO));
+	GLCall(glBindVertexArray(m_VAO));
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_VBO));
+	GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(m_vertices), m_vertices, GL_DYNAMIC_DRAW));
+	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO));
+	GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_DYNAMIC_DRAW));
+	GLCall(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)0));
+	GLCall(glEnableVertexAttribArray(0));
+	GLCall(glGenBuffers(1, &m_iVBO));
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_iVBO));
+	GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(m_positions), m_positions, GL_DYNAMIC_DRAW));
+	GLCall(glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)0));
+	GLCall(glEnableVertexAttribArray(1));
+	GLCall(glVertexAttribDivisor(1, 1));
+	GLCall(glBindVertexArray(0));
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
+	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+
+}
+
 unsigned int ascii_render::Draw() {
 	std::string output = PixelsToString();
 	for (int i = 0; i < output.length(); i++) {
@@ -15,7 +65,7 @@ unsigned int ascii_render::Draw() {
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 	UpdateProjection();
 	shader.Bind();
-	GLCall(glUniformMatrix4fv(shader.GetUniform("projection"), 1, NULL, glm::value_ptr(m_projection)));
+	GLCall(glUniformMatrix4fv(shader.GetUniform("projection"), 1, NULL, glm::value_ptr(glm::ortho(0.0f, static_cast<float>(m_win_w), 0.0f, static_cast<float>(m_win_h)))));
 	GLCall(glUniform2f(shader.GetUniform("windowDims"), m_win_w, m_win_h));
 	GLCall(glUniform2f(shader.GetUniform("imgDims"), m_img_w, m_img_h));
 	GLCall(glActiveTexture(GL_TEXTURE0));
@@ -56,7 +106,6 @@ void ascii_render::UpdateImage(const cv::Mat image)
 
 void ascii_render::UpdateProjection() {
 	GLCall(glfwGetWindowSize(window, &m_win_w, &m_win_h));
-	m_projection = glm::ortho(0.0f, static_cast<float>(m_win_w), 0.0f, static_cast<float>(m_win_h));
 }
 
 std::string ascii_render::PixelsToString()
@@ -113,7 +162,7 @@ void ascii_render::LoadCharacterData()
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		GLCall(glBindTexture(GL_TEXTURE_2D, 0));
-		m_characterData.insert(std::pair<char, CharacterData>(character, data));
+		//m_characterData.insert(std::pair<char, CharacterData>(character, data));
 	}
 	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));
 }

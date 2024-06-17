@@ -15,10 +15,12 @@ out vec3 TexCoords;
 uniform mat4 projection;
 uniform vec2 windowDims;
 uniform vec2 imgDims;
+uniform float charSize;
 
 void main()
 {
 	
-    gl_Position = projection * vec4(vertex.x + (windowDims.x / imgDims.x * position.x), windowDims.y - (vertex.y + (windowDims.y / imgDims.y * position.y)), 0.0, 1.0);
-    TexCoords = vec3(vertices[gl_VertexID], position.z);
+    //gl_Position = projection * vec4(vertex.x + (windowDims.x / imgDims.x * position.x), windowDims.y - (vertex.y + (windowDims.y / imgDims.y * position.y)), 0.0, 1.0);
+    gl_Position = projection * vec4(vertex.x + (charSize * position.x), (imgDims.y * charSize) - vertex.y - (charSize * position.y), 0.0, 1.0);
+	TexCoords = vec3(vertices[gl_VertexID], position.z);
 }  

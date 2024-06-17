@@ -55,33 +55,46 @@ ascii_render::ascii_render(GLFWwindow* window) : window(window), m_charset(" .',
 
 }
 
-unsigned int ascii_render::Draw() {
+SpoutOutTex ascii_render::Draw() {
+	//Process image. Textures in same order as m_charset, so index == layer to sample from
 	std::string output = PixelsToString();
 	for (int i = 0; i < output.length(); i++) {
 		m_positions[i].texArrayIndex = m_charset.find(output[i]);
 	}
+
+	//This buffer contains the layer each position will sample its texture from
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_iVBO));
 	GLCall(glBufferData(GL_ARRAY_BUFFER, m_img_h*m_img_w*sizeof(vertex), m_positions, GL_DYNAMIC_DRAW));
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 	UpdateProjection();
+
+	//Update uniforms to prep for drawing
 	shader.Bind();
-	GLCall(glUniformMatrix4fv(shader.GetUniform("projection"), 1, NULL, glm::value_ptr(glm::ortho(0.0f, static_cast<float>(m_win_w), 0.0f, static_cast<float>(m_win_h)))));
+	//GLCall(glUniformMatrix4fv(shader.GetUniform("projection"), 1, NULL, glm::value_ptr(glm::ortho(0.0f, static_cast<float>(m_win_w), 0.0f, static_cast<float>(m_win_h)))));
+	GLCall(glUniformMatrix4fv(shader.GetUniform("projection"), 1, NULL, glm::value_ptr(glm::ortho(0.0f, static_cast<float>(m_charSize * m_img_w), 0.0f, static_cast<float>(m_charSize * m_img_h)))));
 	GLCall(glUniform2f(shader.GetUniform("windowDims"), m_win_w, m_win_h));
 	GLCall(glUniform2f(shader.GetUniform("imgDims"), m_img_w, m_img_h));
+	GLCall(glUniform1f(shader.GetUniform("charSize"), m_charSize));
+	
 	GLCall(glActiveTexture(GL_TEXTURE0));
 	GLCall(glBindVertexArray(m_VAO));
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_FBO));
+
+	//Allocate space for output == (charSize * cols, charSize * rows)
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_outTex));
-	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_win_w, m_win_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
+	//GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_win_w, m_win_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
+	//GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_charSize * m_img_w, m_charSize * m_img_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
 	glClear(GL_COLOR_BUFFER_BIT);
-	GLCall(glViewport(0, 0, m_win_w, m_win_h));
+	
+	//Set viewport == texture size
+	GLCall(glViewport(0, 0, m_charSize * m_img_w, m_charSize * m_img_h));
 	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, m_textArray));
 	GLCall(glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, output.length()));
 	GLCall(glBindVertexArray(0));
 	shader.Unbind();
 	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-	return m_outTex;
+	return { m_outTex, (int)m_charSize * m_img_w, (int)m_charSize * m_img_h };
 }
 
 void ascii_render::UpdateImage(const cv::Mat image)
@@ -101,6 +114,9 @@ void ascii_render::UpdateImage(const cv::Mat image)
 		}
 		m_img_w = image.cols;
 		m_img_h = image.rows;
+		GLCall(glBindTexture(GL_TEXTURE_2D, m_outTex));
+		//GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_win_w, m_win_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
+		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_charSize * m_img_w, m_charSize * m_img_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
 	}
 }
 

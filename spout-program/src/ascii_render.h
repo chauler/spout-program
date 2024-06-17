@@ -16,10 +16,16 @@
 #include <opencv2/core.hpp>
 #include FT_FREETYPE_H
 
+struct SpoutOutTex {
+	unsigned int id;
+	unsigned int w;
+	unsigned int h;
+};
+
 class ascii_render {
 public:
 	ascii_render(GLFWwindow*);
-	unsigned int Draw();
+	SpoutOutTex Draw();
 	void UpdateImage(const cv::Mat);
 private:
 	void UpdateProjection();
@@ -34,14 +40,14 @@ private:
 	int m_win_w, m_win_h = 0;
 	FT_Face m_face;
 	unsigned int m_VBO, m_VAO, m_EBO, m_iVBO, m_FBO, m_outTex, m_textArray = 0;
+	float m_charSize = 20.0f;
 	vertex m_vertices[4] = {
-		{0.0f,  10.0f, 15.0f},
+		{0.0f,  m_charSize, 15.0f},
 		{0.0f, 0.0f, 15.0f},
-		{10.0f, 0.0f, 15.0f},
-		{10.0f,  10.0f, 15.0f}
+		{m_charSize, 0.0f, 15.0f},
+		{m_charSize,  m_charSize, 15.0f}
 	};
 	unsigned int indices[6] = { 0, 1, 3, 1, 2, 3 };
 	vertex* m_positions;
 	float m_pixelSize = 10.0f;
-	float m_charSize = 10.0f;
 };

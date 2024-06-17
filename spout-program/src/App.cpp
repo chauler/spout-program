@@ -92,10 +92,10 @@ void App::DrawGUI() {
     glClear(GL_COLOR_BUFFER_BIT);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-    cv::Mat mat = GetImageFromTexture(m_spout_img_in, 500, 500);
+    cv::Mat mat = GetImageFromTexture(m_spout_img_in, 150, 150);
     //cv::imshow("Display window", mat);
     m_ascii.UpdateImage(mat);
-    unsigned int outputTex = m_ascii.Draw();
-    m_sender->SendTexture(outputTex, GL_TEXTURE_2D, display_w, display_h);
+    SpoutOutTex outputTex = m_ascii.Draw();
+    m_sender->SendTexture(outputTex.id, GL_TEXTURE_2D, outputTex.w, outputTex.h);
     glfwSwapBuffers(m_window);
 }

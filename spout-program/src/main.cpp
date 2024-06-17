@@ -189,16 +189,17 @@ int main(int, char**)
 }
 
 cv::Mat GetImageFromTexture(const GLuint texID, const unsigned int width, const unsigned int height) {
-    glBindTexture(GL_TEXTURE_2D, texID);
+    GLCall(glBindTexture(GL_TEXTURE_2D, texID));
     GLenum gl_texture_width, gl_texture_height;
 
     glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, (GLint*)&gl_texture_width);
     glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, (GLint*)&gl_texture_height);
     cv::Mat image(gl_texture_height, gl_texture_width, CV_8UC4);
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
-    glPixelStorei(GL_PACK_ROW_LENGTH, image.step / image.elemSize());
-    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.data);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    //Temporarily removed. Performance consideration, but it causes crash when texture shrinks for some reason.
+    //glPixelStorei(GL_PACK_ROW_LENGTH, image.step / image.elemSize());
+    GLCall(glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.data));
+    GLCall(glBindTexture(GL_TEXTURE_2D, 0));
     cv::resize(image, image, cv::Size(width, height));
     cv::cvtColor(image, image, cv::COLOR_RGBA2GRAY);
     return image;

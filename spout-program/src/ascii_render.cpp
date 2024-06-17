@@ -39,16 +39,18 @@ void ascii_render::UpdateImage(const cv::Mat image)
 	m_inputImage = image;
 	//New img is different size to previously allocated.
 	//(Check for nullptr to not delete when uninitialized)
-	if (m_positions != nullptr && (image.cols != m_img_w || image.rows != m_img_h)) {
-		delete(m_positions);
-	}
-	m_img_w = image.cols;
-	m_img_h = image.rows;
-	m_positions = new vertex[m_img_w * m_img_h];
-	for (int row = 0; row < m_img_h; row++) {
-		for (int col = 0; col < m_img_w; col++) {
-			m_positions[row * m_img_w + col] = { (float)col, (float)row, 0.0f };
+	if (image.cols != m_img_w || image.rows != m_img_h) {
+		if (m_positions != nullptr) {
+			delete(m_positions);
 		}
+		m_positions = new vertex[image.cols * image.rows];
+		for (int row = 0; row < image.rows; row++) {
+			for (int col = 0; col < image.cols; col++) {
+				m_positions[row * image.cols + col] = { (float)col, (float)row, 0.0f };
+			}
+		}
+		m_img_w = image.cols;
+		m_img_h = image.rows;
 	}
 }
 

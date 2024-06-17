@@ -10,7 +10,10 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 
-cv::Mat GetImageFromTexture(const GLuint texID, const unsigned int width, const unsigned int height) {
+//Converts OpenGL texture to OpenCV mat for easier processing. Resize mat to provided dimensions.
+//Argument of 0 for one of the dimensions means we scale it to match other dimension with same aspect ratio as texture.
+//Argument of 0 for both dimensions means we do not resize the mat.
+cv::Mat GetImageFromTexture(const GLuint texID, const unsigned int width=0, const unsigned int height=0) {
     GLCall(glBindTexture(GL_TEXTURE_2D, texID));
     GLenum gl_texture_width, gl_texture_height;
 
@@ -22,7 +25,21 @@ cv::Mat GetImageFromTexture(const GLuint texID, const unsigned int width, const 
     //glPixelStorei(GL_PACK_ROW_LENGTH, image.step[0] / image.elemSize());
     GLCall(glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.data));
     GLCall(glBindTexture(GL_TEXTURE_2D, 0));
-    cv::resize(image, image, cv::Size(width, height));
+    //If both are zero, skip all resizing.
+    if (width != 0 || height != 0) {
+        //Calculate width that keeps input aspect ratio
+        if (width == 0) {
+            unsigned int newWidth = gl_texture_width / (gl_texture_height / height);
+            cv::resize(image, image, cv::Size(newWidth, height));
+        } //Calculate height that keeps input aspect ratio
+        else if (height == 0) {
+            unsigned int newHeight = gl_texture_height / (gl_texture_width / width);
+            cv::resize(image, image, cv::Size(width, newHeight));
+        } //User input fixed width and height
+        else {
+            cv::resize(image, image, cv::Size(width, height));
+        }
+    }
     cv::cvtColor(image, image, cv::COLOR_RGBA2GRAY);
     return image;
 }
@@ -92,7 +109,7 @@ void App::DrawGUI() {
     glClear(GL_COLOR_BUFFER_BIT);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-    cv::Mat mat = GetImageFromTexture(m_spout_img_in, 150, 150);
+    cv::Mat mat = GetImageFromTexture(m_spout_img_in, 0, 50);
     //cv::imshow("Display window", mat);
     m_ascii.UpdateImage(mat);
     SpoutOutTex outputTex = m_ascii.Draw();

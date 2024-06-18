@@ -82,10 +82,7 @@ SpoutOutTex ascii_render::Draw() {
 
 	//Allocate space for output == (charSize * cols, charSize * rows)
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_outTex));
-	//GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_win_w, m_win_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
-	//GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_charSize * m_img_w, m_charSize * m_img_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
 	glClear(GL_COLOR_BUFFER_BIT);
-	
 	//Set viewport == texture size
 	GLCall(glViewport(0, 0, m_charSize * m_img_w, m_charSize * m_img_h));
 	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, m_textArray));
@@ -120,6 +117,26 @@ void ascii_render::UpdateImage(const cv::Mat image)
 	}
 }
 
+void ascii_render::UpdateState(float charSize, int charRes) {
+	if (charSize != m_charSize) {
+		m_charSize = charSize;
+		m_vertices[0].y = m_charSize;
+		m_vertices[2].x = m_charSize;
+		m_vertices[3].x = m_charSize;
+		m_vertices[3].y = m_charSize;
+		GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_VBO));
+		GLCall(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(m_vertices), m_vertices););
+		GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_VBO));
+		GLCall(glBindTexture(GL_TEXTURE_2D, m_outTex));
+		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_charSize * m_img_w, m_charSize * m_img_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
+	}
+	if (charRes != m_charRes) {
+		m_charRes = charRes;
+		LoadCharacterData(m_charRes);
+	}
+
+}
+
 void ascii_render::UpdateProjection() {
 	GLCall(glfwGetWindowSize(window, &m_win_w, &m_win_h));
 }
@@ -141,23 +158,26 @@ std::string ascii_render::PixelsToString()
 	return output;
 }
 
-void ascii_render::LoadCharacterData()
+void ascii_render::LoadCharacterData(int textSize)
 {
-	unsigned int textSize = 100;
-	GLCall(glGenTextures(1, &m_textArray));
+	//Function may be called to re-allocate textures. Only gen texture if this is first call.
+	if (m_textArray == 0) {
+		GLCall(glGenTextures(1, &m_textArray));
+	}
 	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, m_textArray));
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	GLCall(glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_R8, 90, 90, m_charset.length()));
+	//GLCall(glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_R8, 90, 90, m_charset.length()));
+	unsigned char* buffer = new unsigned char[textSize * textSize * m_charset.length()]{};
+	GLCall(glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_R8, textSize, textSize, m_charset.length(), 0, GL_RED, GL_UNSIGNED_BYTE, buffer));
 	for (int i = 0; i < m_charset.length(); i++) {
 		char character = m_charset[i];
 		FT_Set_Pixel_Sizes(m_face, 0, textSize);
 		unsigned int glyph_index = FT_Get_Char_Index(m_face, character);
 		FT_Load_Glyph(m_face, glyph_index, FT_LOAD_DEFAULT);
 		FT_Render_Glyph(m_face->glyph, FT_RENDER_MODE_NORMAL);
-		CharacterData data{};
 		GLCall(glTexSubImage3D(GL_TEXTURE_2D_ARRAY,
 			0,
 			0,
@@ -170,15 +190,12 @@ void ascii_render::LoadCharacterData()
 			GL_UNSIGNED_BYTE,
 			m_face->glyph->bitmap.buffer
 			));
-		data.size = glm::ivec2(m_face->glyph->bitmap.width, m_face->glyph->bitmap.rows);
-		data.bearing = glm::ivec2(m_face->glyph->bitmap_left, m_face->glyph->bitmap_top);
-		data.advance = m_face->glyph->advance.x;
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		GLCall(glBindTexture(GL_TEXTURE_2D, 0));
-		//m_characterData.insert(std::pair<char, CharacterData>(character, data));
 	}
 	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));
+	delete[] buffer;
 }

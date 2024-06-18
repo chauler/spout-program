@@ -60,14 +60,40 @@ App::App(GLFWwindow* window): m_window(window), m_ImGuiIO(ImGui::GetIO()), m_asc
 }
 
 void App::DrawGUI() {
+    RunLogic();
+
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
     int window_w, window_h;
     glfwGetWindowSize(m_window, &window_w, &window_h);
     ImGui::SetNextWindowPos(ImVec2());
-    ImGui::SetNextWindowSize(ImVec2(window_w, window_h));
-    ImGui::Begin("Spout Feed", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar);
+    ImGui::SetNextWindowSize(ImVec2(window_w / 5, window_h));
+    
+    ImGui::Begin("Options", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+    ImGui::SliderFloat("Char Size", &m_charSize, 1.0f, 100.0f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
+    ImGui::SliderInt("Char Resolution", &m_charRes, 1, 100, "%d", ImGuiSliderFlags_AlwaysClamp);
+    ImGui::End();
+
+    ImGui::SetNextWindowPos(ImVec2(window_w / 5, 0));
+    ImGui::SetNextWindowSize(ImVec2(window_w / 10, window_h / 10), ImGuiCond_Once);
+    ImGui::Begin("Spout Feed", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_HorizontalScrollbar);
+    ImGui::Image((void*)(intptr_t)m_spout_img_in, ImVec2(m_image_w, m_image_h));
+    ImGui::Text("size = %d x %d", m_image_w, m_image_h);
+    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / m_ImGuiIO.Framerate, m_ImGuiIO.Framerate);
+    ImGui::End();
+    ImGui::Render();
+    int display_w, display_h;
+    glfwGetFramebufferSize(m_window, &display_w, &display_h);
+    glViewport(0, 0, display_w, display_h);
+    ImVec4 bg_color = ImVec4(1.00f, 0.55f, 0.60f, 0.00f);
+    glClearColor(bg_color.x * bg_color.w, bg_color.y * bg_color.w, bg_color.z * bg_color.w, bg_color.w);
+    glClear(GL_COLOR_BUFFER_BIT);
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    glfwSwapBuffers(m_window);
+}
+
+void App::RunLogic() {
     if (m_receiver->ReceiveTexture()) {
         // Bind to get access to the shared texture
         if (m_receiver->BindSharedTexture()) {
@@ -94,25 +120,11 @@ void App::DrawGUI() {
 
             // Un-bind to release access to the shared texture
             m_receiver->UnBindSharedTexture();
-            ImGui::Image((void*)(intptr_t)m_spout_img_in, ImVec2(m_image_w, m_image_h));
-            ImGui::Text("size = %d x %d", m_image_w, m_image_h);
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / m_ImGuiIO.Framerate, m_ImGuiIO.Framerate);
         }
     }
-    ImGui::End();
-    ImGui::Render();
-    int display_w, display_h;
-    glfwGetFramebufferSize(m_window, &display_w, &display_h);
-    glViewport(0, 0, display_w, display_h);
-    ImVec4 bg_color = ImVec4(1.00f, 0.55f, 0.60f, 0.00f);
-    glClearColor(bg_color.x * bg_color.w, bg_color.y * bg_color.w, bg_color.z * bg_color.w, bg_color.w);
-    glClear(GL_COLOR_BUFFER_BIT);
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-    cv::Mat mat = GetImageFromTexture(m_spout_img_in, 0, 50);
-    //cv::imshow("Display window", mat);
+    cv::Mat mat = GetImageFromTexture(m_spout_img_in, 0, 100);
     m_ascii.UpdateImage(mat);
+    m_ascii.UpdateState(m_charSize, m_charRes);
     SpoutOutTex outputTex = m_ascii.Draw();
     m_sender->SendTexture(outputTex.id, GL_TEXTURE_2D, outputTex.w, outputTex.h);
-    glfwSwapBuffers(m_window);
 }

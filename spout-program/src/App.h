@@ -23,7 +23,7 @@ private:
 
 	//App State editable in the GUI
 	float m_charSize = 10.0f;
-	int m_charRes = 100;
+	int m_charRes = 100, m_cols = 100, m_rows = 100;
 };
 
 //cv::Mat GetImageFromTexture(const GLuint, const unsigned int, const unsigned int);

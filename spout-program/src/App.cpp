@@ -73,6 +73,8 @@ void App::DrawGUI() {
     ImGui::Begin("Options", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
     ImGui::SliderFloat("Char Size", &m_charSize, 1.0f, 100.0f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
     ImGui::SliderInt("Char Resolution", &m_charRes, 1, 100, "%d", ImGuiSliderFlags_AlwaysClamp);
+    ImGui::SliderInt("Width", &m_cols, 0, 1000, "%d", ImGuiSliderFlags_AlwaysClamp);
+    ImGui::SliderInt("Height", &m_rows, 0, 1000, "%d", ImGuiSliderFlags_AlwaysClamp);
     ImGui::End();
 
     ImGui::SetNextWindowPos(ImVec2(window_w / 5, 0));
@@ -122,7 +124,7 @@ void App::RunLogic() {
             m_receiver->UnBindSharedTexture();
         }
     }
-    cv::Mat mat = GetImageFromTexture(m_spout_img_in, 0, 100);
+    cv::Mat mat = GetImageFromTexture(m_spout_img_in, m_cols, m_rows);
     m_ascii.UpdateImage(mat);
     m_ascii.UpdateState(m_charSize, m_charRes);
     SpoutOutTex outputTex = m_ascii.Draw();

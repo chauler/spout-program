@@ -24,6 +24,7 @@ private:
 	//App State editable in the GUI
 	float m_charSize = 10.0f;
 	int m_charRes = 100, m_cols = 100, m_rows = 100;
+	float m_bgColor[4]{1.0, 1.0, 1.0, 0.0};
 };
 
 //cv::Mat GetImageFromTexture(const GLuint, const unsigned int, const unsigned int);

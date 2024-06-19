@@ -26,8 +26,8 @@ class ascii_render {
 public:
 	ascii_render(GLFWwindow*);
 	SpoutOutTex Draw();
-	void UpdateImage(const cv::Mat);
-	void UpdateState(float, int);
+	void UpdateImage(const cv::Mat&);
+	void UpdateState(float, int, glm::vec4);
 private:
 	void UpdateProjection();
 	std::string PixelsToString();
@@ -52,4 +52,5 @@ private:
 	vertex* m_positions;
 	float m_pixelSize = 10.0f;
 	int m_charRes = 100;
+	glm::vec4 m_bgColor{1.0, 0.5, 0.5, 1.0};
 };

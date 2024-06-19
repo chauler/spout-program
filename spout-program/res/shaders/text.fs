@@ -5,6 +5,7 @@ layout(location = 0) out vec4 color;
 //uniform sampler2D text;
 uniform sampler2DArray textArray;
 uniform vec3 textColor;
+uniform vec4 bgColor;
 
 void main()
 {    
@@ -14,7 +15,7 @@ void main()
     if (TexCoords.z > 0.1) {
         //black pixel
         if(sampled.w == 0.0 ) {
-            color = vec4(128.0, 128.0, 128.0, 0.5);
+            color = bgColor;
         } else {
             //color = vec4(textColor, 1.0) * sampled;
             color = vec4(textColor, 1.0);

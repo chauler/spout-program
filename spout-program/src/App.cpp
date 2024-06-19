@@ -54,7 +54,7 @@ App::App(GLFWwindow* window): m_window(window), m_ImGuiIO(ImGui::GetIO()), m_asc
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1920, 1017, 0, GL_RGBA, GL_UNSIGNED_BYTE, (unsigned char*)malloc(1920 * 1017 * 4 * sizeof(unsigned char)));
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // This is required on WebGL for non power-of-two textures
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glBindTexture(GL_TEXTURE_2D, 0);
 }
@@ -75,6 +75,7 @@ void App::DrawGUI() {
     ImGui::SliderInt("Char Resolution", &m_charRes, 1, 100, "%d", ImGuiSliderFlags_AlwaysClamp);
     ImGui::SliderInt("Width", &m_cols, 0, 1000, "%d", ImGuiSliderFlags_AlwaysClamp);
     ImGui::SliderInt("Height", &m_rows, 0, 1000, "%d", ImGuiSliderFlags_AlwaysClamp);
+    ImGui::ColorPicker4("Background Color", m_bgColor, ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_Float);
     ImGui::End();
 
     ImGui::SetNextWindowPos(ImVec2(window_w / 5, 0));
@@ -126,7 +127,7 @@ void App::RunLogic() {
     }
     cv::Mat mat = GetImageFromTexture(m_spout_img_in, m_cols, m_rows);
     m_ascii.UpdateImage(mat);
-    m_ascii.UpdateState(m_charSize, m_charRes);
+    m_ascii.UpdateState(m_charSize, m_charRes, glm::vec4(m_bgColor[0], m_bgColor[1], m_bgColor[2], m_bgColor[3]));
     SpoutOutTex outputTex = m_ascii.Draw();
     m_sender->SendTexture(outputTex.id, GL_TEXTURE_2D, outputTex.w, outputTex.h);
 }

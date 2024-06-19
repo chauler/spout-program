@@ -17,6 +17,7 @@ ascii_render::ascii_render(GLFWwindow* window) : window(window), m_charset(" .',
 	GLCall(glUniformMatrix4fv(shader.GetUniform("projection"), 1, NULL, glm::value_ptr(glm::ortho(0.0f, static_cast<float>(m_win_w), 0.0f, static_cast<float>(m_win_h)))));
 	float textColor[3] = { 1.0f, 1.0f, 1.0f };
 	GLCall(glUniform3f(glGetUniformLocation(shader.GetProgram(), "textColor"), textColor[0], textColor[1], textColor[2]));
+	GLCall(glUniform4f(shader.GetUniform("bgColor"), m_bgColor[0], m_bgColor[1], m_bgColor[2], m_bgColor[3]));
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	shader.Unbind();
@@ -94,7 +95,7 @@ SpoutOutTex ascii_render::Draw() {
 	return { m_outTex, (int)m_charSize * m_img_w, (int)m_charSize * m_img_h };
 }
 
-void ascii_render::UpdateImage(const cv::Mat image)
+void ascii_render::UpdateImage(const cv::Mat& image)
 {
 	m_inputImage = image;
 	//New img is different size to previously allocated.
@@ -117,7 +118,7 @@ void ascii_render::UpdateImage(const cv::Mat image)
 	}
 }
 
-void ascii_render::UpdateState(float charSize, int charRes) {
+void ascii_render::UpdateState(float charSize, int charRes, glm::vec4 bgColor) {
 	if (charSize != m_charSize) {
 		m_charSize = charSize;
 		m_vertices[0].y = m_charSize;
@@ -135,6 +136,12 @@ void ascii_render::UpdateState(float charSize, int charRes) {
 		LoadCharacterData(m_charRes);
 	}
 
+	if (bgColor != m_bgColor) {
+		m_bgColor = bgColor;
+		shader.Bind();
+		GLCall(glUniform4f(shader.GetUniform("bgColor"), m_bgColor[0], m_bgColor[1], m_bgColor[2], m_bgColor[3]));
+		shader.Unbind();
+	}
 }
 
 void ascii_render::UpdateProjection() {

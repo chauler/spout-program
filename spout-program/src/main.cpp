@@ -10,6 +10,7 @@
 #include <GLFW/glfw3.h> // Will drag system OpenGL headers
 #include <iostream>
 #include "App.h"
+#include "tracy/public/tracy/Tracy.hpp"
 
 static void glfw_error_callback(int error, const char* description)
 {
@@ -82,6 +83,7 @@ int main(int, char**)
         // Start the Dear ImGui frame
         // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.  
         // Rendering
+        FrameMark;
     }
     cleanup(window);
     return 0;

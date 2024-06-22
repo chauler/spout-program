@@ -9,11 +9,13 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
+#include "tracy/public/tracy/Tracy.hpp"
 
 //Converts OpenGL texture to OpenCV mat for easier processing. Resize mat to provided dimensions.
 //Argument of 0 for one of the dimensions means we scale it to match other dimension with same aspect ratio as texture.
 //Argument of 0 for both dimensions means we do not resize the mat.
 cv::Mat GetImageFromTexture(const GLuint texID, const unsigned int width=0, const unsigned int height=0) {
+    ZoneScoped;
     GLCall(glBindTexture(GL_TEXTURE_2D, texID));
     GLenum gl_texture_width, gl_texture_height;
 
@@ -60,6 +62,7 @@ App::App(GLFWwindow* window): m_window(window), m_ImGuiIO(ImGui::GetIO()), m_asc
 }
 
 void App::DrawGUI() {
+    ZoneScoped;
     RunLogic();
 
     ImGui_ImplOpenGL3_NewFrame();
@@ -97,6 +100,7 @@ void App::DrawGUI() {
 }
 
 void App::RunLogic() {
+    ZoneScoped;
     if (m_receiver->ReceiveTexture()) {
         // Bind to get access to the shared texture
         if (m_receiver->BindSharedTexture()) {

@@ -1,0 +1,3 @@
+[submodule "spout-program/src/vendor/tracy"]
+	path = spout-program/src/vendor/tracy
+	url = https://github.com/wolfpld/tracy.git

@@ -4,6 +4,7 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
+#include "tracy/public/tracy/Tracy.hpp"
 
 ascii_render::ascii_render(GLFWwindow* window) : window(window), m_charset(" .',:;clxokXdO0KN") {
 	glfwGetWindowSize(window, &m_win_w, &m_win_h);
@@ -57,6 +58,7 @@ ascii_render::ascii_render(GLFWwindow* window) : window(window), m_charset(" .',
 }
 
 SpoutOutTex ascii_render::Draw() {
+	ZoneScoped;
 	//Process image. Textures in same order as m_charset, so index == layer to sample from
 	std::string output = PixelsToString();
 	for (int i = 0; i < output.length(); i++) {
@@ -97,6 +99,7 @@ SpoutOutTex ascii_render::Draw() {
 
 void ascii_render::UpdateImage(const cv::Mat& image)
 {
+	ZoneScoped;
 	m_inputImage = image;
 	//New img is different size to previously allocated.
 	//(Check for nullptr to not delete when uninitialized)
@@ -119,6 +122,7 @@ void ascii_render::UpdateImage(const cv::Mat& image)
 }
 
 void ascii_render::UpdateState(float charSize, int charRes, glm::vec4 bgColor) {
+	ZoneScoped;
 	if (charSize != m_charSize) {
 		m_charSize = charSize;
 		m_vertices[0].y = m_charSize;
@@ -150,6 +154,7 @@ void ascii_render::UpdateProjection() {
 
 std::string ascii_render::PixelsToString()
 {
+	ZoneScoped;
 	unsigned char* pixelPtr = m_inputImage.data;
 	int channels = m_inputImage.channels();
 	unsigned char pixel = '\0';
@@ -167,6 +172,7 @@ std::string ascii_render::PixelsToString()
 
 void ascii_render::LoadCharacterData(int textSize)
 {
+	ZoneScoped;
 	//Function may be called to re-allocate textures. Only gen texture if this is first call.
 	if (m_textArray == 0) {
 		GLCall(glGenTextures(1, &m_textArray));

@@ -8,7 +8,7 @@
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
-#include <opencv2/imgproc.hpp>
+//#include <opencv2/imgproc.hpp>
 #include "tracy/public/tracy/Tracy.hpp"
 
 //Converts OpenGL texture to OpenCV mat for easier processing. Resize mat to provided dimensions.

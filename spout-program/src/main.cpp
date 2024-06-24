@@ -25,7 +25,6 @@ void cleanup(GLFWwindow* window) {
     glfwTerminate();
 }
 
-// Main code
 int main(int, char**)
 {
     glfwSetErrorCallback(glfw_error_callback);
@@ -65,7 +64,6 @@ int main(int, char**)
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
-    //ImGui::StyleColorsLight();
 
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window, true);

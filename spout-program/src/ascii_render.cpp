@@ -35,6 +35,7 @@ ascii_render::ascii_render(GLFWwindow* window) : window(window), m_charset(" .',
 	GLCall(glDrawBuffers(1, DrawBuffers));
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		exit(1);
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 	GLCall(glGenBuffers(1, &m_VBO));
 	GLCall(glGenBuffers(1, &m_EBO));
 	GLCall(glGenVertexArrays(1, &m_VAO));

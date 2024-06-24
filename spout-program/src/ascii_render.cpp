@@ -7,7 +7,7 @@
 #include "tracy/public/tracy/Tracy.hpp"
 
 ascii_render::ascii_render(GLFWwindow* window) : window(window), m_charset(" .',:;clxokXdO0KN") {
-	glfwGetWindowSize(window, &m_win_w, &m_win_h);
+	glfwGetWindowSize(window, &m_winW, &m_winH);
 	fontLoader.LoadFace("res/fonts/arial.ttf");
 	m_face = fontLoader.GetFace();
 	LoadCharacterData();
@@ -15,10 +15,9 @@ ascii_render::ascii_render(GLFWwindow* window) : window(window), m_charset(" .',
 	shader.AddShader(GL_FRAGMENT_SHADER, "res/shaders/text.fs");
 	shader.CompileShader();
 	shader.Bind();
-	GLCall(glUniformMatrix4fv(shader.GetUniform("projection"), 1, NULL, glm::value_ptr(glm::ortho(0.0f, static_cast<float>(m_win_w), 0.0f, static_cast<float>(m_win_h)))));
-	float textColor[3] = { 1.0f, 1.0f, 1.0f };
-	GLCall(glUniform3f(glGetUniformLocation(shader.GetProgram(), "textColor"), textColor[0], textColor[1], textColor[2]));
+	GLCall(glUniformMatrix4fv(shader.GetUniform("projection"), 1, NULL, glm::value_ptr(glm::ortho(0.0f, static_cast<float>(m_winW), 0.0f, static_cast<float>(m_winH)))));
 	GLCall(glUniform4f(shader.GetUniform("bgColor"), m_bgColor[0], m_bgColor[1], m_bgColor[2], m_bgColor[3]));
+	GLCall(glUniform4f(shader.GetUniform("charColor"), m_charColor[0], m_charColor[1], m_charColor[2], m_charColor[3]));
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	shader.Unbind();
@@ -27,7 +26,7 @@ ascii_render::ascii_render(GLFWwindow* window) : window(window), m_charset(" .',
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_FBO));
 	GLCall(glGenTextures(1, &m_outTex));
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_outTex));
-	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_win_w, m_win_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
+	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_winW, m_winH, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	GLCall(glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_outTex, 0));
@@ -68,16 +67,16 @@ SpoutOutTex ascii_render::Draw() {
 
 	//This buffer contains the layer each position will sample its texture from
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_iVBO));
-	GLCall(glBufferData(GL_ARRAY_BUFFER, m_img_h*m_img_w*sizeof(vertex), m_positions, GL_DYNAMIC_DRAW));
+	GLCall(glBufferData(GL_ARRAY_BUFFER, m_imgH*m_imgW*sizeof(vertex), m_positions, GL_DYNAMIC_DRAW));
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 	UpdateProjection();
 
 	//Update uniforms to prep for drawing
 	shader.Bind();
-	//GLCall(glUniformMatrix4fv(shader.GetUniform("projection"), 1, NULL, glm::value_ptr(glm::ortho(0.0f, static_cast<float>(m_win_w), 0.0f, static_cast<float>(m_win_h)))));
-	GLCall(glUniformMatrix4fv(shader.GetUniform("projection"), 1, NULL, glm::value_ptr(glm::ortho(0.0f, static_cast<float>(m_charSize * m_img_w), 0.0f, static_cast<float>(m_charSize * m_img_h)))));
-	GLCall(glUniform2f(shader.GetUniform("windowDims"), m_win_w, m_win_h));
-	GLCall(glUniform2f(shader.GetUniform("imgDims"), m_img_w, m_img_h));
+	//GLCall(glUniformMatrix4fv(shader.GetUniform("projection"), 1, NULL, glm::value_ptr(glm::ortho(0.0f, static_cast<float>(m_winW), 0.0f, static_cast<float>(m_winH)))));
+	GLCall(glUniformMatrix4fv(shader.GetUniform("projection"), 1, NULL, glm::value_ptr(glm::ortho(0.0f, static_cast<float>(m_charSize * m_imgW), 0.0f, static_cast<float>(m_charSize * m_imgH)))));
+	GLCall(glUniform2f(shader.GetUniform("windowDims"), m_winW, m_winH));
+	GLCall(glUniform2f(shader.GetUniform("imgDims"), m_imgW, m_imgH));
 	GLCall(glUniform1f(shader.GetUniform("charSize"), m_charSize));
 	
 	GLCall(glActiveTexture(GL_TEXTURE0));
@@ -88,14 +87,14 @@ SpoutOutTex ascii_render::Draw() {
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_outTex));
 	glClear(GL_COLOR_BUFFER_BIT);
 	//Set viewport == texture size
-	GLCall(glViewport(0, 0, m_charSize * m_img_w, m_charSize * m_img_h));
+	GLCall(glViewport(0, 0, m_charSize * m_imgW, m_charSize * m_imgH));
 	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, m_textArray));
 	GLCall(glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, output.length()));
 	GLCall(glBindVertexArray(0));
 	shader.Unbind();
 	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-	return { m_outTex, (int)m_charSize * m_img_w, (int)m_charSize * m_img_h };
+	return { m_outTex, (int)m_charSize * m_imgW, (int)m_charSize * m_imgH };
 }
 
 void ascii_render::UpdateImage(const cv::Mat& image)
@@ -104,7 +103,7 @@ void ascii_render::UpdateImage(const cv::Mat& image)
 	m_inputImage = image;
 	//New img is different size to previously allocated.
 	//(Check for nullptr to not delete when uninitialized)
-	if (image.cols != m_img_w || image.rows != m_img_h) {
+	if (image.cols != m_imgW || image.rows != m_imgH) {
 		if (m_positions != nullptr) {
 			delete(m_positions);
 		}
@@ -114,15 +113,15 @@ void ascii_render::UpdateImage(const cv::Mat& image)
 				m_positions[row * image.cols + col] = { (float)col, (float)row, 0.0f };
 			}
 		}
-		m_img_w = image.cols;
-		m_img_h = image.rows;
+		m_imgW = image.cols;
+		m_imgH = image.rows;
 		GLCall(glBindTexture(GL_TEXTURE_2D, m_outTex));
-		//GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_win_w, m_win_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
-		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_charSize * m_img_w, m_charSize * m_img_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
+		//GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_winW, m_winH, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
+		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_charSize * m_imgW, m_charSize * m_imgH, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
 	}
 }
 
-void ascii_render::UpdateState(float charSize, int charRes, glm::vec4 bgColor) {
+void ascii_render::UpdateState(float charSize, int charRes, glm::vec4 bgColor, glm::vec4 charColor) {
 	ZoneScoped;
 	if (charSize != m_charSize) {
 		m_charSize = charSize;
@@ -134,7 +133,7 @@ void ascii_render::UpdateState(float charSize, int charRes, glm::vec4 bgColor) {
 		GLCall(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(m_vertices), m_vertices););
 		GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_VBO));
 		GLCall(glBindTexture(GL_TEXTURE_2D, m_outTex));
-		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_charSize * m_img_w, m_charSize * m_img_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
+		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_charSize * m_imgW, m_charSize * m_imgH, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
 	}
 	if (charRes != m_charRes) {
 		m_charRes = charRes;
@@ -147,10 +146,17 @@ void ascii_render::UpdateState(float charSize, int charRes, glm::vec4 bgColor) {
 		GLCall(glUniform4f(shader.GetUniform("bgColor"), m_bgColor[0], m_bgColor[1], m_bgColor[2], m_bgColor[3]));
 		shader.Unbind();
 	}
+
+	if (charColor != m_charColor) {
+		m_charColor = charColor;
+		shader.Bind();
+		GLCall(glUniform4f(shader.GetUniform("charColor"), m_charColor[0], m_charColor[1], m_charColor[2], m_charColor[3]));
+		shader.Unbind();
+	}
 }
 
 void ascii_render::UpdateProjection() {
-	GLCall(glfwGetWindowSize(window, &m_win_w, &m_win_h));
+	GLCall(glfwGetWindowSize(window, &m_winW, &m_winH));
 }
 
 std::string ascii_render::PixelsToString()
@@ -167,7 +173,7 @@ std::string ascii_render::PixelsToString()
 			output+=m_charset[index];
 		}
 	}
-	assert(output.length() == m_img_h * m_img_w);
+	assert(output.length() == m_imgH * m_imgW);
 	return output;
 }
 

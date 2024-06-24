@@ -27,7 +27,7 @@ public:
 	ascii_render(GLFWwindow*);
 	SpoutOutTex Draw();
 	void UpdateImage(const cv::Mat&);
-	void UpdateState(float, int, glm::vec4);
+	void UpdateState(float, int, glm::vec4, glm::vec4);
 private:
 	void UpdateProjection();
 	std::string PixelsToString();
@@ -36,11 +36,11 @@ private:
 	Shader shader;
 	FontLoader fontLoader;
 	cv::Mat m_inputImage;
-	unsigned int m_img_w, m_img_h = 0;
+	unsigned int m_imgW, m_imgH = 0;
 	GLFWwindow* window = nullptr;
-	int m_win_w, m_win_h = 0;
+	int m_winW, m_winH = 0;
 	FT_Face m_face;
-	unsigned int m_VBO, m_VAO, m_EBO, m_iVBO, m_FBO, m_outTex, m_textArray = 0;
+	unsigned int m_VBO = 0, m_VAO = 0, m_EBO = 0, m_iVBO = 0, m_FBO = 0, m_outTex = 0, m_textArray = 0;
 	float m_charSize = 50.0f;
 	vertex m_vertices[4] = {
 		{0.0f,  m_charSize, 15.0f},
@@ -53,4 +53,5 @@ private:
 	float m_pixelSize = 10.0f;
 	int m_charRes = 100;
 	glm::vec4 m_bgColor{1.0, 0.5, 0.5, 1.0};
+	glm::vec4 m_charColor{ 1.0, 1.0, 1.0, 1.0 };
 };

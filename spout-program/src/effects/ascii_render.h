@@ -30,9 +30,8 @@ public:
 	void UpdateState(float, int, glm::vec4, glm::vec4);
 private:
 	void UpdateProjection();
-	std::string PixelsToString();
+	void CalculateCharsFromLuminance();
 	void LoadCharacterData(int = 100);
-	std::string m_charset{};
 	Shader shader;
 	FontLoader fontLoader;
 	cv::Mat m_inputImage;
@@ -54,4 +53,10 @@ private:
 	int m_charRes = 100;
 	glm::vec4 m_bgColor{1.0, 0.5, 0.5, 1.0};
 	glm::vec4 m_charColor{ 1.0, 1.0, 1.0, 1.0 };
+	std::map<unsigned int, std::wstring> m_charSets{
+		{8, L" .-+o$#8"},
+		{16, L" .',:;clxokXdO0KN"},
+		{32, L" `´¨·¸˜’:~‹°—÷¡|/+}?1u@VY©4ÐŽÂMÆ"}
+	};
+	std::wstring& m_charset;
 };

@@ -4,7 +4,7 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include "SpoutLibrary.h"
-#include "ascii_render.h"
+#include "effects/ascii_render.h"
 
 class App {
 public:

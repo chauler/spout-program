@@ -1,3 +1,4 @@
+#include <math.h>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include "ascii_render.h"
@@ -6,9 +7,9 @@
 #include "imgui/imgui_impl_opengl3.h"
 #include "tracy/public/tracy/Tracy.hpp"
 
-ascii_render::ascii_render(GLFWwindow* window) : window(window), m_charset(" .',:;clxokXdO0KN") {
+ascii_render::ascii_render(GLFWwindow* window) : window(window), m_charset(m_charSets[32]) {
 	glfwGetWindowSize(window, &m_winW, &m_winH);
-	fontLoader.LoadFace("res/fonts/arial.ttf");
+	fontLoader.LoadFace("res/fonts/Roboto-Regular.ttf");
 	m_face = fontLoader.GetFace();
 	LoadCharacterData();
 	shader.AddShader(GL_VERTEX_SHADER, "res/shaders/text.vs");
@@ -60,10 +61,7 @@ ascii_render::ascii_render(GLFWwindow* window) : window(window), m_charset(" .',
 SpoutOutTex ascii_render::Draw() {
 	ZoneScoped;
 	//Process image. Textures in same order as m_charset, so index == layer to sample from
-	std::string output = PixelsToString();
-	for (int i = 0; i < output.length(); i++) {
-		m_positions[i].texArrayIndex = m_charset.find(output[i]);
-	}
+	CalculateCharsFromLuminance();
 
 	//This buffer contains the layer each position will sample its texture from
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_iVBO));
@@ -73,7 +71,6 @@ SpoutOutTex ascii_render::Draw() {
 
 	//Update uniforms to prep for drawing
 	shader.Bind();
-	//GLCall(glUniformMatrix4fv(shader.GetUniform("projection"), 1, NULL, glm::value_ptr(glm::ortho(0.0f, static_cast<float>(m_winW), 0.0f, static_cast<float>(m_winH)))));
 	GLCall(glUniformMatrix4fv(shader.GetUniform("projection"), 1, NULL, glm::value_ptr(glm::ortho(0.0f, static_cast<float>(m_charSize * m_imgW), 0.0f, static_cast<float>(m_charSize * m_imgH)))));
 	GLCall(glUniform2f(shader.GetUniform("windowDims"), m_winW, m_winH));
 	GLCall(glUniform2f(shader.GetUniform("imgDims"), m_imgW, m_imgH));
@@ -89,7 +86,7 @@ SpoutOutTex ascii_render::Draw() {
 	//Set viewport == texture size
 	GLCall(glViewport(0, 0, m_charSize * m_imgW, m_charSize * m_imgH));
 	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, m_textArray));
-	GLCall(glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, output.length()));
+	GLCall(glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, m_imgH * m_imgW));
 	GLCall(glBindVertexArray(0));
 	shader.Unbind();
 	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));
@@ -159,22 +156,19 @@ void ascii_render::UpdateProjection() {
 	GLCall(glfwGetWindowSize(window, &m_winW, &m_winH));
 }
 
-std::string ascii_render::PixelsToString()
+void ascii_render::CalculateCharsFromLuminance()
 {
 	ZoneScoped;
 	unsigned char* pixelPtr = m_inputImage.data;
 	int channels = m_inputImage.channels();
 	unsigned char pixel = '\0';
-	std::string output{};
 	for (int i = 0; i < m_inputImage.rows; i++) {
 		for (int j = 0; j < m_inputImage.cols; j++) {
 			pixel = pixelPtr[i*m_inputImage.cols + j];
-			unsigned int index = (unsigned int)pixel / (255 / m_charset.length());
-			output+=m_charset[index];
+			unsigned int index = (unsigned int)pixel / ceil(((float)255 / m_charset.length()));
+			m_positions[i * m_inputImage.cols + j].texArrayIndex = index;
 		}
 	}
-	assert(output.length() == m_imgH * m_imgW);
-	return output;
 }
 
 void ascii_render::LoadCharacterData(int textSize)
@@ -189,11 +183,10 @@ void ascii_render::LoadCharacterData(int textSize)
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	//GLCall(glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_R8, 90, 90, m_charset.length()));
 	unsigned char* buffer = new unsigned char[textSize * textSize * m_charset.length()]{};
 	GLCall(glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_R8, textSize, textSize, m_charset.length(), 0, GL_RED, GL_UNSIGNED_BYTE, buffer));
 	for (int i = 0; i < m_charset.length(); i++) {
-		char character = m_charset[i];
+		wchar_t character = m_charset[i];
 		FT_Set_Pixel_Sizes(m_face, 0, textSize);
 		unsigned int glyph_index = FT_Get_Char_Index(m_face, character);
 		FT_Load_Glyph(m_face, glyph_index, FT_LOAD_DEFAULT);

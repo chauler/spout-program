@@ -92,7 +92,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>GLEW_STATIC;%(PreprocessorDefinitions);DEBUG;TRACY_ENABLE;</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src\vendor;$(SolutionDir)dependencies\GLFW\include\;$(SolutionDir)dependencies\GLEW\include;$(SolutionDir)dependencies\spout;$(SolutionDir)dependencies\opencv\;$(SolutionDir)dependencies\freetype\freetype;$(SolutionDir)dependencies\glm\;$(ProjectDir)src\vendor\tracy</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src\;$(ProjectDir)src\vendor;$(SolutionDir)dependencies\GLFW\include\;$(SolutionDir)dependencies\GLEW\include;$(SolutionDir)dependencies\spout;$(SolutionDir)dependencies\opencv\;$(SolutionDir)dependencies\freetype\freetype;$(SolutionDir)dependencies\glm\;$(ProjectDir)src\vendor\tracy</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
@@ -113,7 +113,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>GLEW_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src\vendor;$(SolutionDir)dependencies\GLFW\include\;$(SolutionDir)dependencies\GLEW\include;$(SolutionDir)dependencies\spout;$(SolutionDir)dependencies\opencv\;$(SolutionDir)dependencies\freetype\freetype;$(SolutionDir)dependencies\glm\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src\;$(ProjectDir)src\vendor;$(SolutionDir)dependencies\GLFW\include\;$(SolutionDir)dependencies\GLEW\include;$(SolutionDir)dependencies\spout;$(SolutionDir)dependencies\opencv\;$(SolutionDir)dependencies\freetype\freetype;$(SolutionDir)dependencies\glm\;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -133,7 +133,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>GLEW_STATIC;%(PreprocessorDefinitions);DEBUG;TRACY_ENABLE;</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src\vendor;$(SolutionDir)dependencies\GLFW\include\;$(SolutionDir)dependencies\GLEW\include;$(SolutionDir)dependencies\spout;$(SolutionDir)dependencies\opencv\;$(SolutionDir)dependencies\freetype\freetype;$(SolutionDir)dependencies\glm\;$(ProjectDir)src\vendor\tracy</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src\;$(ProjectDir)src\vendor;$(SolutionDir)dependencies\GLFW\include\;$(SolutionDir)dependencies\GLEW\include;$(SolutionDir)dependencies\spout;$(SolutionDir)dependencies\opencv\;$(SolutionDir)dependencies\freetype\freetype;$(SolutionDir)dependencies\glm\;$(ProjectDir)src\vendor\tracy</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
@@ -154,7 +154,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>GLEW_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src\vendor;$(SolutionDir)dependencies\GLFW\include\;$(SolutionDir)dependencies\GLEW\include;$(SolutionDir)dependencies\spout;$(SolutionDir)dependencies\opencv\;$(SolutionDir)dependencies\freetype\freetype;$(SolutionDir)dependencies\glm\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src\;$(ProjectDir)src\vendor;$(SolutionDir)dependencies\GLFW\include\;$(SolutionDir)dependencies\GLEW\include;$(SolutionDir)dependencies\spout;$(SolutionDir)dependencies\opencv\;$(SolutionDir)dependencies\freetype\freetype;$(SolutionDir)dependencies\glm\;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -170,8 +170,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\App.cpp" />
-    <ClCompile Include="src\ascii_render.cpp" />
     <ClCompile Include="src\Character.cpp" />
+    <ClCompile Include="src\effects\ascii_render.cpp" />
     <ClCompile Include="src\FontLoader.cpp" />
     <ClCompile Include="src\load_image.cpp" />
     <ClCompile Include="src\main.cpp" />
@@ -189,8 +189,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\App.h" />
-    <ClInclude Include="src\ascii_render.h" />
     <ClInclude Include="src\Character.h" />
+    <ClInclude Include="src\effects\ascii_render.h" />
     <ClInclude Include="src\FontLoader.h" />
     <ClInclude Include="src\load_image.h" />
     <ClInclude Include="src\Renderer.h" />
@@ -211,6 +211,9 @@
     <None Include="res\shaders\sample.vs" />
     <None Include="res\shaders\text.fs" />
     <None Include="res\shaders\text.vs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Font Include="..\..\..\Users\Alex\Downloads\Roboto\Roboto-Regular.ttf" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

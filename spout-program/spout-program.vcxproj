@@ -170,7 +170,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\App.cpp" />
-    <ClCompile Include="src\Character.cpp" />
     <ClCompile Include="src\effects\ascii_render.cpp" />
     <ClCompile Include="src\FontLoader.cpp" />
     <ClCompile Include="src\load_image.cpp" />
@@ -211,9 +210,6 @@
     <None Include="res\shaders\sample.vs" />
     <None Include="res\shaders\text.fs" />
     <None Include="res\shaders\text.vs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Font Include="..\..\..\Users\Alex\Downloads\Roboto\Roboto-Regular.ttf" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

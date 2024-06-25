@@ -44,14 +44,20 @@ ascii_render::ascii_render(GLFWwindow* window) : window(window), m_charset(m_cha
 	GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(m_vertices), m_vertices, GL_DYNAMIC_DRAW));
 	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO));
 	GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_DYNAMIC_DRAW));
-	GLCall(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)0));
+	GLCall(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GenericGlyphData), (void*)0));
 	GLCall(glEnableVertexAttribArray(0));
 	GLCall(glGenBuffers(1, &m_iVBO));
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_iVBO));
 	GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(m_positions), m_positions, GL_DYNAMIC_DRAW));
-	GLCall(glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)0));
+	GLCall(glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)0));
 	GLCall(glEnableVertexAttribArray(1));
 	GLCall(glVertexAttribDivisor(1, 1));
+	GLCall(glGenBuffers(1, &m_iVBO2));
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_iVBO2));
+	GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(m_colors), m_colors, GL_DYNAMIC_DRAW));
+	GLCall(glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)0));
+	GLCall(glEnableVertexAttribArray(2));
+	GLCall(glVertexAttribDivisor(2, 1));
 	GLCall(glBindVertexArray(0));
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
@@ -65,15 +71,17 @@ SpoutOutTex ascii_render::Draw() {
 
 	//This buffer contains the layer each position will sample its texture from
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_iVBO));
-	GLCall(glBufferData(GL_ARRAY_BUFFER, m_imgH*m_imgW*sizeof(vertex), m_positions, GL_DYNAMIC_DRAW));
+	GLCall(glBufferData(GL_ARRAY_BUFFER, m_inputImage.h * m_inputImage.w * sizeof(InstanceData), m_positions, GL_DYNAMIC_DRAW));
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_iVBO2));
+	GLCall(glBufferData(GL_ARRAY_BUFFER, m_inputImage.h * m_inputImage.w * sizeof(InstanceData), m_colors, GL_DYNAMIC_DRAW));
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 	UpdateProjection();
 
 	//Update uniforms to prep for drawing
 	shader.Bind();
-	GLCall(glUniformMatrix4fv(shader.GetUniform("projection"), 1, NULL, glm::value_ptr(glm::ortho(0.0f, static_cast<float>(m_charSize * m_imgW), 0.0f, static_cast<float>(m_charSize * m_imgH)))));
+	GLCall(glUniformMatrix4fv(shader.GetUniform("projection"), 1, NULL, glm::value_ptr(glm::ortho(0.0f, static_cast<float>(m_charSize * m_inputImage.w), 0.0f, static_cast<float>(m_charSize * m_inputImage.h)))));
 	GLCall(glUniform2f(shader.GetUniform("windowDims"), m_winW, m_winH));
-	GLCall(glUniform2f(shader.GetUniform("imgDims"), m_imgW, m_imgH));
+	GLCall(glUniform2f(shader.GetUniform("imgDims"), m_inputImage.w, m_inputImage.h));
 	GLCall(glUniform1f(shader.GetUniform("charSize"), m_charSize));
 	
 	GLCall(glActiveTexture(GL_TEXTURE0));
@@ -84,37 +92,41 @@ SpoutOutTex ascii_render::Draw() {
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_outTex));
 	glClear(GL_COLOR_BUFFER_BIT);
 	//Set viewport == texture size
-	GLCall(glViewport(0, 0, m_charSize * m_imgW, m_charSize * m_imgH));
+	GLCall(glViewport(0, 0, m_charSize * m_inputImage.w, m_charSize * m_inputImage.h));
 	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, m_textArray));
-	GLCall(glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, m_imgH * m_imgW));
+	GLCall(glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, m_inputImage.h * m_inputImage.w));
 	GLCall(glBindVertexArray(0));
 	shader.Unbind();
 	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-	return { m_outTex, (int)m_charSize * m_imgW, (int)m_charSize * m_imgH };
+	return { m_outTex, (int)m_charSize * m_inputImage.w, (int)m_charSize * m_inputImage.h };
 }
 
 void ascii_render::UpdateImage(const cv::Mat& image)
 {
 	ZoneScoped;
-	m_inputImage = image;
+	m_inputImage.image = image;
 	//New img is different size to previously allocated.
 	//(Check for nullptr to not delete when uninitialized)
-	if (image.cols != m_imgW || image.rows != m_imgH) {
+	if (image.cols != m_inputImage.w || image.rows != m_inputImage.h) {
 		if (m_positions != nullptr) {
 			delete(m_positions);
 		}
-		m_positions = new vertex[image.cols * image.rows];
+		if (m_colors != nullptr) {
+			delete(m_colors);
+		}
+		m_positions = new InstanceData[image.cols * image.rows];
+		m_colors = new InstanceData[image.cols * image.rows];
 		for (int row = 0; row < image.rows; row++) {
 			for (int col = 0; col < image.cols; col++) {
-				m_positions[row * image.cols + col] = { (float)col, (float)row, 0.0f };
+				m_positions[row * image.cols + col] = { (float)col, (float)row, 31.0f };
+				m_colors[row * image.cols + col] = { 0.5, 0.5, 0.5 };
 			}
 		}
-		m_imgW = image.cols;
-		m_imgH = image.rows;
+		m_inputImage.w = image.cols;
+		m_inputImage.h = image.rows;
 		GLCall(glBindTexture(GL_TEXTURE_2D, m_outTex));
-		//GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_winW, m_winH, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
-		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_charSize * m_imgW, m_charSize * m_imgH, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
+		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_charSize * m_inputImage.w, m_charSize * m_inputImage.h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
 	}
 }
 
@@ -130,7 +142,7 @@ void ascii_render::UpdateState(float charSize, int charRes, glm::vec4 bgColor, g
 		GLCall(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(m_vertices), m_vertices););
 		GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_VBO));
 		GLCall(glBindTexture(GL_TEXTURE_2D, m_outTex));
-		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_charSize * m_imgW, m_charSize * m_imgH, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
+		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_charSize * m_inputImage.w, m_charSize * m_inputImage.h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
 	}
 	if (charRes != m_charRes) {
 		m_charRes = charRes;
@@ -156,18 +168,29 @@ void ascii_render::UpdateProjection() {
 	GLCall(glfwGetWindowSize(window, &m_winW, &m_winH));
 }
 
-void ascii_render::CalculateCharsFromLuminance()
-{
+void ascii_render::CalculateCharsFromLuminance() {
 	ZoneScoped;
-	unsigned char* pixelPtr = m_inputImage.data;
-	int channels = m_inputImage.channels();
-	unsigned char pixel = '\0';
-	for (int i = 0; i < m_inputImage.rows; i++) {
-		for (int j = 0; j < m_inputImage.cols; j++) {
-			pixel = pixelPtr[i*m_inputImage.cols + j];
-			unsigned int index = (unsigned int)pixel / ceil(((float)255 / m_charset.length()));
-			m_positions[i * m_inputImage.cols + j].texArrayIndex = index;
-		}
+	unsigned char* pixelPtr = m_inputImage.image.data;
+	int channels = m_inputImage.image.channels();
+	if ((m_inputImage.image.type() & CV_MAT_DEPTH_MASK) != CV_8U || channels != 1 && channels != 4) {
+		std::cout << "Unsupported Image type" << std::endl;
+	}
+
+	if (channels == 1) {
+		m_inputImage.image.forEach<unsigned char>([&](unsigned char& pixel, const int* pos) {
+			//pos layout: [y, x]
+			unsigned int index = pixel / ceil((float)255 / m_charset.length());
+			m_positions[pos[0] * m_inputImage.image.cols + pos[1]].texArrayIndex = index;
+			});
+	}
+	else {
+		m_inputImage.image.forEach<cv::Vec4b>([&](cv::Vec4b& pixel, const int* pos) {
+			//pos layout: [y, x]
+			const int x = pos[1];
+			const int y = pos[0];
+			m_colors[y * m_inputImage.image.cols + x] = { (float)pixel[0] / 255, (float)pixel[1] / 255, (float)pixel[2] / 255};
+			//m_colors[y * m_inputImage.image.cols + x] = { 1.0, 0.0, 0.0 };
+			});
 	}
 }
 

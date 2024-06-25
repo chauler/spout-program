@@ -43,7 +43,7 @@ cv::Mat GetImageFromTexture(const GLuint texID, const unsigned int width=0, cons
             cv::resize(image, image, cv::Size(width, height));
         }
     }
-    cv::cvtColor(image, image, cv::COLOR_RGBA2GRAY);
+    //cv::cvtColor(image, image, cv::COLOR_RGBA2GRAY);
     return image;
 }
 

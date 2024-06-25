@@ -16,8 +16,26 @@
 #include <opencv2/core.hpp>
 #include FT_FREETYPE_H
 
+struct GenericGlyphData {
+	float x;
+	float y;
+	float throwawayData;
+};
+
+struct InstanceData {
+	float row;
+	float column;
+	float texArrayIndex;
+};
+
 struct SpoutOutTex {
 	unsigned int id;
+	unsigned int w;
+	unsigned int h;
+};
+
+struct InputImage {
+	cv::Mat image;
 	unsigned int w;
 	unsigned int h;
 };
@@ -34,21 +52,21 @@ private:
 	void LoadCharacterData(int = 100);
 	Shader shader;
 	FontLoader fontLoader;
-	cv::Mat m_inputImage;
-	unsigned int m_imgW, m_imgH = 0;
 	GLFWwindow* window = nullptr;
 	int m_winW, m_winH = 0;
+	InputImage m_inputImage;
 	FT_Face m_face;
-	unsigned int m_VBO = 0, m_VAO = 0, m_EBO = 0, m_iVBO = 0, m_FBO = 0, m_outTex = 0, m_textArray = 0;
+	unsigned int m_VBO = 0, m_VAO = 0, m_EBO = 0, m_iVBO = 0, m_iVBO2 = 0, m_FBO = 0, m_outTex = 0, m_textArray = 0;
 	float m_charSize = 50.0f;
-	vertex m_vertices[4] = {
+	GenericGlyphData m_vertices[4] = {
 		{0.0f,  m_charSize, 15.0f},
 		{0.0f, 0.0f, 15.0f},
 		{m_charSize, 0.0f, 15.0f},
 		{m_charSize,  m_charSize, 15.0f}
 	};
 	unsigned int indices[6] = { 0, 1, 3, 1, 2, 3 };
-	vertex* m_positions;
+	InstanceData* m_positions;
+	InstanceData* m_colors;
 	float m_pixelSize = 10.0f;
 	int m_charRes = 100;
 	glm::vec4 m_bgColor{1.0, 0.5, 0.5, 1.0};

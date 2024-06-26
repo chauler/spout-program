@@ -231,7 +231,21 @@ void ascii_render::LoadCharacterData(int textSize)
 		FT_Set_Pixel_Sizes(m_face, 0, textSize);
 		unsigned int glyph_index = FT_Get_Char_Index(m_face, character);
 		FT_Load_Glyph(m_face, glyph_index, FT_LOAD_DEFAULT);
-		FT_Render_Glyph(m_face->glyph, FT_RENDER_MODE_NORMAL);
+		FT_Render_Glyph(m_face->glyph, FT_RENDER_MODE_MONO);
+		
+		//Mono format above represents each pixel as 1 bit
+		//Convert that to 1 byte for OpenGL. 1=white, 0=black
+		unsigned char* glyphBuffer = new unsigned char[m_face->glyph->bitmap.width * m_face->glyph->bitmap.rows];
+		int pitch = m_face->glyph->bitmap.pitch;
+		for (int row = 0; row < m_face->glyph->bitmap.rows; row++) {
+			for (int col = 0; col < m_face->glyph->bitmap.width; col++) {
+				unsigned int rowStartIndex = row * pitch;
+				unsigned char cValue = m_face->glyph->bitmap.buffer[rowStartIndex + (col >> 3)];
+				glyphBuffer[row * m_face->glyph->bitmap.width + col] = ((cValue & (128 >> (col & 7))) != 0) * 255;
+			}
+		}
+
+
 		GLCall(glTexSubImage3D(GL_TEXTURE_2D_ARRAY,
 			0,
 			0,
@@ -242,8 +256,9 @@ void ascii_render::LoadCharacterData(int textSize)
 			1,
 			GL_RED,
 			GL_UNSIGNED_BYTE,
-			m_face->glyph->bitmap.buffer
+			glyphBuffer
 			));
+		delete[] glyphBuffer;
 		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);

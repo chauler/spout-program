@@ -11,12 +11,14 @@ uniform vec4 charColor;
 uniform vec4 bgColor;
 
 void main()
-{    
+{   
+    //Colored text implementation
     vec4 sampled= vec4(1.0, 1.0, 1.0, texture(textArray, TexCoords).r);
     vec4 sampledTemp = texture(inputTexture, outPosition.xy);
-    //Color implementation
-    vec3 inputColor = texture(inputTexture, vec2(0.5)).rgb;
     color = sampledTemp * sampled;
+    if(TexCoords.z > 0.1 && sampled.w == 0.0) {
+        color = bgColor;
+    }
     //not empty space
     //if (TexCoords.z > 0.1) {
     //    //black pixel

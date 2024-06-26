@@ -56,7 +56,7 @@ private:
 	int m_winW, m_winH = 0;
 	InputImage m_inputImage;
 	FT_Face m_face;
-	unsigned int m_VBO = 0, m_VAO = 0, m_EBO = 0, m_iVBO = 0, m_iVBO2 = 0, m_FBO = 0, m_outTex = 0, m_textArray = 0;
+	unsigned int m_VBO = 0, m_VAO = 0, m_EBO = 0, m_iVBO = 0, m_iVBO2 = 0, m_FBO = 0, m_outTex = 0, m_textArray = 0, m_inputTex = 0;
 	float m_charSize = 50.0f;
 	GenericGlyphData m_vertices[4] = {
 		{0.0f,  m_charSize, 15.0f},

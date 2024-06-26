@@ -32,6 +32,14 @@ void Shader::CompileShader() {
 		GLCall(glAttachShader(m_programID, id));
 	}
 	GLCall(glLinkProgram(m_programID));
+	int  success;
+	char infoLog[512];
+	glGetShaderiv(m_programID, GL_COMPILE_STATUS, &success);
+	if (!success)
+	{
+		glGetShaderInfoLog(m_programID, 512, NULL, infoLog);
+		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+	}
 	for (unsigned int id : shaders) {
 		GLCall(glDeleteShader(id));
 	}

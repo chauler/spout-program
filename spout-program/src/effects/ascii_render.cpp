@@ -7,7 +7,7 @@
 #include "imgui/imgui_impl_opengl3.h"
 #include "tracy/public/tracy/Tracy.hpp"
 
-ascii_render::ascii_render(GLFWwindow* window) : window(window), m_charset(m_charSets[32]) {
+ascii_render::ascii_render(GLFWwindow* window) : window(window), m_charsetSize(32), m_charset(m_charSets[m_charsetSize]) {
 	glfwGetWindowSize(window, &m_winW, &m_winH);
 	fontLoader.LoadFace("res/fonts/Roboto-Regular.ttf");
 	m_face = fontLoader.GetFace();
@@ -19,6 +19,7 @@ ascii_render::ascii_render(GLFWwindow* window) : window(window), m_charset(m_cha
 	GLCall(glUniformMatrix4fv(shader.GetUniform("projection"), 1, NULL, glm::value_ptr(glm::ortho(0.0f, static_cast<float>(m_winW), 0.0f, static_cast<float>(m_winH)))));
 	GLCall(glUniform4f(shader.GetUniform("bgColor"), m_bgColor[0], m_bgColor[1], m_bgColor[2], m_bgColor[3]));
 	GLCall(glUniform4f(shader.GetUniform("charColor"), m_charColor[0], m_charColor[1], m_charColor[2], m_charColor[3]));
+	GLCall(glUniform1f(shader.GetUniform("charsetSize"), (float)m_charsetSize));
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	shader.Unbind();
@@ -91,6 +92,7 @@ SpoutOutTex ascii_render::Draw() {
 	GLCall(glUniform2f(shader.GetUniform("windowDims"), m_winW, m_winH));
 	GLCall(glUniform2f(shader.GetUniform("imgDims"), m_inputImage.w, m_inputImage.h));
 	GLCall(glUniform1f(shader.GetUniform("charSize"), m_charSize));
+	GLCall(glUniform1f(shader.GetUniform("charsetSize"), m_charsetSize));
 	
 	GLCall(glBindVertexArray(m_VAO));
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_FBO));

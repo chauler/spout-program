@@ -1,35 +1,25 @@
 #version 430 core
-in vec3 TexCoords;
-in vec3 pixelColor;
-in vec2 outPosition;
+in vec3 glyphTexCoords;
+in vec2 normalizedPos;
 layout(location = 0) out vec4 color;
 
-//uniform sampler2D text;
 layout(binding=0) uniform sampler2DArray textArray;
 layout(binding=1) uniform sampler2D inputTexture;
 uniform vec4 charColor;
 uniform vec4 bgColor;
+uniform float charsetSize;
 
 void main()
 {   
-    //Colored text implementation
-    vec4 sampled= vec4(1.0, 1.0, 1.0, texture(textArray, TexCoords).r);
-    vec4 sampledTemp = texture(inputTexture, outPosition.xy);
-    color = sampledTemp * sampled;
-    if(TexCoords.z > 0.1 && sampled.w == 0.0) {
+    //Grab the RGB from the input image
+    vec4 inputSample = texture(inputTexture, normalizedPos.xy);
+    //Calculate luminance for use in sampling the glyph
+    //float luminance = (float(inputSample.r + inputSample.g + inputSample.b) / 3.0) * charsetSize;// - 31.0;
+    float luminance = float(inputSample.r * 0.2126 + inputSample.g * .7152 + inputSample.b * .0722) * charsetSize;
+    //Texture access here just determines which layer of glyph array we use to determine alpha.
+    vec4 glyphSample= vec4(1.0, 1.0, 1.0, texture(textArray, vec3(glyphTexCoords.xy, glyphTexCoords.z)).r);
+    color = inputSample * glyphSample;
+    if(glyphTexCoords.z > 0.1 && glyphSample.w == 0.0) {
         color = bgColor;
     }
-    //not empty space
-    //if (TexCoords.z > 0.1) {
-    //    //black pixel
-    //    if(sampled.w == 0.0 ) {
-    //        color = bgColor;
-    //    } else {
-    //        color = vec4(charColor);
-    //    }
-    //}
-    //else {
-    //    //Make empty space blank
-    //    color = vec4(charColor.xyz, 0.0);
-    //}
 }

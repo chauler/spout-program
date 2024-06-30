@@ -75,5 +75,6 @@ private:
 		{16, L" .',:;clxokXdO0KN"},
 		{32, L" `´¨·¸˜’:~‹°—÷¡|/+}?1u@VY©4ÐŽÂMÆ"}
 	};
+	unsigned int m_charsetSize = 16;
 	std::wstring& m_charset;
 };

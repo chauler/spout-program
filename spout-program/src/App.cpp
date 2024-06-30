@@ -4,12 +4,16 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include "App.h"
+#include "Texture2D.h"
 #include <SpoutLibrary.h>
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
-#include <opencv2/highgui.hpp>
-//#include <opencv2/imgproc.hpp>
 #include "tracy/public/tracy/Tracy.hpp"
+#include <memory>
+#include "sources/SpoutSource.h"
+#include "sources/CamSource.h"
+
+int App::m_iconified = 0;
 
 //Converts OpenGL texture to OpenCV mat for easier processing. Resize mat to provided dimensions.
 //Argument of 0 for one of the dimensions means we scale it to match other dimension with same aspect ratio as texture.
@@ -47,24 +51,28 @@ cv::Mat GetImageFromTexture(const GLuint texID, const unsigned int width=0, cons
     return image;
 }
 
+void IconifyCallback(GLFWwindow* window, int iconified) {
+    std::cout << iconified << std::endl;
+    App::SetIconified(iconified);
+}
+
 App::App(GLFWwindow* window): m_window(window), m_ImGuiIO(ImGui::GetIO()), m_ascii(m_window) {
-    m_receiver = GetSpout();
-    m_receiver->SetReceiverName("VTubeStudioSpout");
+    glfwSetWindowIconifyCallback(window, IconifyCallback);
+    m_source = std::make_unique<SpoutSource>("VTubeStudioSpout");
     m_sender = GetSpout();
     m_sender->SetSenderName("SpoutProgram");
-    glGenTextures(1, &m_spoutSource);
-    glBindTexture(GL_TEXTURE_2D, m_spoutSource);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1920, 1017, 0, GL_RGBA, GL_UNSIGNED_BYTE, (unsigned char*)malloc(1920 * 1017 * 4 * sizeof(unsigned char)));
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    m_spoutSource.Allocate(GL_RGBA, 1920, 1017, GL_RGBA, GL_UNSIGNED_BYTE, std::make_unique<unsigned char[]>(1920 * 1017 * 4).get());
+    m_spoutSource.SetParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    m_spoutSource.SetParameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    m_spoutSource.SetParameter(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    m_spoutSource.SetParameter(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 }
 
 void App::DrawGUI() {
     ZoneScoped;
-    RunLogic();
+    if (m_iconified) {
+        return;
+    }
 
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
@@ -74,7 +82,20 @@ void App::DrawGUI() {
     ImGui::SetNextWindowPos(ImVec2());
     ImGui::SetNextWindowSize(ImVec2(window_w / 5, window_h));
     
+    ImGui::ShowDemoWindow();
+
     ImGui::Begin("Options", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+    //Selectable returns true if clicked that frame. Filter for only when *changing* selection
+    if (ImGui::Selectable("Spout", sourceType == SourceType::SpoutSource) && sourceType != SourceType::SpoutSource) {
+        sourceType = SourceType::SpoutSource;
+        //m_source.reset();
+        m_source = std::make_unique<SpoutSource>("VTubeStudioSpout");
+    }
+    if (ImGui::Selectable("Cam", sourceType == SourceType::CamSource) && sourceType != SourceType::CamSource) {
+        sourceType = SourceType::CamSource;
+        //m_source.reset();
+        m_source = std::make_unique<CamSource>();
+    }
     ImGui::SliderFloat("Char Size", &m_charSize, 1.0f, 100.0f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
     ImGui::SliderInt("Char Resolution", &m_charRes, 1, 100, "%d", ImGuiSliderFlags_AlwaysClamp);
     ImGui::SliderInt("Width", &m_cols, 0, 1000, "%d", ImGuiSliderFlags_AlwaysClamp);
@@ -86,8 +107,8 @@ void App::DrawGUI() {
     ImGui::SetNextWindowPos(ImVec2(window_w / 5, 0));
     ImGui::SetNextWindowSize(ImVec2(window_w / 10, window_h / 10), ImGuiCond_Once);
     ImGui::Begin("Spout Feed", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_HorizontalScrollbar);
-    ImGui::Image((void*)(intptr_t)m_spoutSource, ImVec2(m_imageW, m_imageH));
-    ImGui::Text("size = %d x %d", m_imageW, m_imageH);
+    ImGui::Image((void*)(intptr_t)m_spoutSource.GetID(), ImVec2(m_source->GetWidth(), m_source->GetHeight()));
+    ImGui::Text("size = %d x %d", m_source->GetWidth(), m_source->GetHeight());
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / m_ImGuiIO.Framerate, m_ImGuiIO.Framerate);
     ImGui::End();
     ImGui::Render();
@@ -98,45 +119,18 @@ void App::DrawGUI() {
     glClearColor(bg_color.x * bg_color.w, bg_color.y * bg_color.w, bg_color.z * bg_color.w, bg_color.w);
     glClear(GL_COLOR_BUFFER_BIT);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-    glfwSwapBuffers(m_window);
 }
 
 void App::RunLogic() {
     ZoneScoped;
-    if (m_receiver->ReceiveTexture()) {
-        // Bind to get access to the shared texture
-        if (m_receiver->BindSharedTexture()) {
-            // Get the shared texture ID and do something with it
-            GLuint sharedTexID = m_receiver->GetSharedTextureID();
-            // copy from the shared texture
-            glBindTexture(GL_TEXTURE_2D, m_spoutSource);
-            //Re-allocate texture buffer if incoming image is different dimensions
-            if (m_imageW != m_receiver->GetSenderWidth() || m_imageH != m_receiver->GetSenderHeight()) {
-                if (m_spoutSourceData != nullptr) {
-                    delete m_spoutSourceData;
-                }
-                m_imageW = m_receiver->GetSenderWidth();
-                m_imageH = m_receiver->GetSenderHeight();
-                m_spoutSourceData = new unsigned char[m_imageW * m_imageH * 4];
-            }
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_imageW, m_imageH, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_spoutSourceData);
-            m_receiver->CopyTexture(sharedTexID, GL_TEXTURE_2D,
-                m_spoutSource,
-                GL_TEXTURE_2D,
-                m_imageW, m_imageH);
-            glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_spoutSourceData);
-            glBindTexture(GL_TEXTURE_2D, 0);
-
-            // Un-bind to release access to the shared texture
-            m_receiver->UnBindSharedTexture();
-        }
-    }
-    cv::Mat mat = GetImageFromTexture(m_spoutSource, m_cols, m_rows);
+    m_source->GetNextFrame(m_spoutSource.GetID(), GL_TEXTURE_2D);
+    m_spoutSourceData = m_source->GetFrameData();
+    cv::Mat mat = GetImageFromTexture(m_spoutSource.GetID(), m_cols, m_rows);
     m_ascii.UpdateImage(mat);
     m_ascii.UpdateState(m_charSize,
         m_charRes,
-        glm::vec4(m_bgColor[0], m_bgColor[1], m_bgColor[2], m_bgColor[3]),
-        glm::vec4(m_charColor[0], m_charColor[1], m_charColor[2], m_charColor[3])
+        { m_bgColor[0], m_bgColor[1], m_bgColor[2], m_bgColor[3] },
+        { m_charColor[0], m_charColor[1], m_charColor[2], m_charColor[3] }
     );
     SpoutOutTex outputTex = m_ascii.Draw();
     m_sender->SendTexture(outputTex.id, GL_TEXTURE_2D, outputTex.w, outputTex.h);

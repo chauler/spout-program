@@ -5,21 +5,31 @@
 #include <opencv2/imgproc.hpp>
 #include "SpoutLibrary.h"
 #include "effects/ascii_render.h"
+#include "Texture2D.h"
+#include "sources/ISource.h"
+#include <memory>
+
+enum class SourceType: unsigned int { SpoutSource, CamSource };
 
 class App {
 public:
 	App(GLFWwindow*);
 	void DrawGUI();
-private:
 	void RunLogic();
+	static void SetIconified(int iconified) { m_iconified = iconified; }
+private:
 	GLFWwindow* m_window = nullptr;
 	SPOUTLIBRARY* m_receiver = nullptr;
 	SPOUTLIBRARY* m_sender = nullptr;
-	unsigned int m_spoutSource = 0;
-	unsigned char* m_spoutSourceData = nullptr;
+	Texture2D m_spoutSource{};
+	std::shared_ptr<unsigned char[]> m_spoutSourceData{};
 	unsigned int m_imageW = 0, m_imageH = 0;
 	ImGuiIO& m_ImGuiIO;
     ascii_render m_ascii;
+	std::unique_ptr<ISource> m_source;
+	SourceType sourceType = SourceType::SpoutSource;
+	static int m_iconified;
+
 
 	//App State editable in the GUI
 	float m_charSize = 10.0f;

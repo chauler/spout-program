@@ -69,18 +69,14 @@ int main(int, char**)
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
-    // Our state
-    ImVec4 bg_color = ImVec4(1.00f, 0.55f, 0.60f, 0.00f);
-    // Main loop
-    //cv::namedWindow("Display window", cv::WINDOW_AUTOSIZE);
     App app{window};
+    // Main loop
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
+        app.RunLogic();
         app.DrawGUI();
-        // Start the Dear ImGui frame
-        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.  
-        // Rendering
+        glfwSwapBuffers(window);
         FrameMark;
     }
     cleanup(window);

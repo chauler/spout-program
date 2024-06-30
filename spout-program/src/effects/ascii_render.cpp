@@ -193,6 +193,7 @@ void ascii_render::CalculateCharsFromLuminance() {
 		std::cout << "Unsupported Image type" << std::endl;
 	}
 
+	//Grayscale image
 	if (channels == 1) {
 		m_inputImage.image.forEach<unsigned char>([&](unsigned char& pixel, const int* pos) {
 			//pos layout: [y, x]
@@ -200,7 +201,7 @@ void ascii_render::CalculateCharsFromLuminance() {
 			m_positions[pos[0] * m_inputImage.image.cols + pos[1]].texArrayIndex = index;
 			});
 	}
-	else {
+	else { //RGB
 		m_inputImage.image.forEach<cv::Vec4b>([&](cv::Vec4b& pixel, const int* pos) {
 			//pos layout: [y, x]
 			const int x = pos[1];

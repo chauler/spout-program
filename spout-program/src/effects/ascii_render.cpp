@@ -53,19 +53,19 @@ ascii_render::ascii_render(GLFWwindow* window) : window(window), m_charsetSize(3
 	GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(m_vertices), m_vertices, GL_DYNAMIC_DRAW));
 	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO));
 	GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_DYNAMIC_DRAW));
-	GLCall(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GenericGlyphData), (void*)0));
+	GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(GenericGlyphData), (void*)0));
 	GLCall(glEnableVertexAttribArray(0));
 	GLCall(glGenBuffers(1, &m_iVBO));
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_iVBO));
 	GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(m_positions), m_positions, GL_DYNAMIC_DRAW));
-	GLCall(glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)0));
+	GLCall(glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)0));
 	GLCall(glEnableVertexAttribArray(1));
 	GLCall(glVertexAttribDivisor(1, 1));
-	GLCall(glGenBuffers(1, &m_iVBO2));
-	GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_iVBO2));
-	GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(m_colors), m_colors, GL_DYNAMIC_DRAW));
-	GLCall(glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)0));
-	GLCall(glEnableVertexAttribArray(2));
+	//GLCall(glGenBuffers(1, &m_iVBO2));
+	//GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_iVBO2));
+	//GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(m_colors), m_colors, GL_DYNAMIC_DRAW));
+	//GLCall(glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)0));
+	//GLCall(glEnableVertexAttribArray(2));
 	GLCall(glVertexAttribDivisor(2, 1));
 	GLCall(glBindVertexArray(0));
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
@@ -76,20 +76,19 @@ ascii_render::ascii_render(GLFWwindow* window) : window(window), m_charsetSize(3
 SpoutOutTex ascii_render::Draw() {
 	ZoneScoped;
 	//Process image. Textures in same order as m_charset, so index == layer to sample from
-	CalculateCharsFromLuminance();
+	//CalculateCharsFromLuminance();
 
 	//This buffer contains the layer each position will sample its texture from
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_iVBO));
 	GLCall(glBufferData(GL_ARRAY_BUFFER, m_inputImage.h * m_inputImage.w * sizeof(InstanceData), m_positions, GL_DYNAMIC_DRAW));
-	GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_iVBO2));
-	GLCall(glBufferData(GL_ARRAY_BUFFER, m_inputImage.h * m_inputImage.w * sizeof(InstanceData), m_colors, GL_DYNAMIC_DRAW));
+	//GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_iVBO2));
+	//GLCall(glBufferData(GL_ARRAY_BUFFER, m_inputImage.h * m_inputImage.w * sizeof(InstanceData), m_colors, GL_DYNAMIC_DRAW));
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 	UpdateProjection();
 
 	//Update uniforms to prep for drawing
 	shader.Bind();
 	GLCall(glUniformMatrix4fv(shader.GetUniform("projection"), 1, NULL, glm::value_ptr(glm::ortho(0.0f, static_cast<float>(m_charSize * m_inputImage.w), 0.0f, static_cast<float>(m_charSize * m_inputImage.h)))));
-	GLCall(glUniform2f(shader.GetUniform("windowDims"), m_winW, m_winH));
 	GLCall(glUniform2f(shader.GetUniform("imgDims"), m_inputImage.w, m_inputImage.h));
 	GLCall(glUniform1f(shader.GetUniform("charSize"), m_charSize));
 	GLCall(glUniform1f(shader.GetUniform("charsetSize"), m_charsetSize));
@@ -125,15 +124,10 @@ void ascii_render::UpdateImage(const cv::Mat& image)
 		if (m_positions != nullptr) {
 			delete(m_positions);
 		}
-		if (m_colors != nullptr) {
-			delete(m_colors);
-		}
 		m_positions = new InstanceData[image.cols * image.rows];
-		m_colors = new InstanceData[image.cols * image.rows];
 		for (int row = 0; row < image.rows; row++) {
 			for (int col = 0; col < image.cols; col++) {
-				m_positions[row * image.cols + col] = { (float)col, (float)row, 31.0f };
-				m_colors[row * image.cols + col] = { 0.5, 0.5, 0.5 };
+				m_positions[row * image.cols + col] = { (float)col, (float)row };
 			}
 		}
 		m_inputImage.w = image.cols;
@@ -187,33 +181,6 @@ void ascii_render::UpdateProjection() {
 	GLCall(glfwGetWindowSize(window, &m_winW, &m_winH));
 }
 
-void ascii_render::CalculateCharsFromLuminance() {
-	ZoneScoped;
-	unsigned char* pixelPtr = m_inputImage.image.data;
-	int channels = m_inputImage.image.channels();
-	if ((m_inputImage.image.type() & CV_MAT_DEPTH_MASK) != CV_8U || channels != 1 && channels != 4) {
-		std::cout << "Unsupported Image type" << std::endl;
-	}
-
-	//Grayscale image
-	if (channels == 1) {
-		m_inputImage.image.forEach<unsigned char>([&](unsigned char& pixel, const int* pos) {
-			//pos layout: [y, x]
-			unsigned int index = pixel / ceil((float)255 / m_charset.length());
-			m_positions[pos[0] * m_inputImage.image.cols + pos[1]].texArrayIndex = index;
-			});
-	}
-	else { //RGB
-		m_inputImage.image.forEach<cv::Vec4b>([&](cv::Vec4b& pixel, const int* pos) {
-			//pos layout: [y, x]
-			const int x = pos[1];
-			const int y = pos[0];
-			m_colors[y * m_inputImage.image.cols + x] = { (float)pixel[0] / 255, (float)pixel[1] / 255, (float)pixel[2] / 255};
-			m_positions[y * m_inputImage.image.cols + x].texArrayIndex = (((float)pixel[0] + (float)pixel[1] + (float)pixel[2]) / 3) / ceil((float)255 / m_charset.length());
-			});
-	}
-}
-
 void ascii_render::LoadCharacterData(int textSize)
 {
 	ZoneScoped;
@@ -262,11 +229,6 @@ void ascii_render::LoadCharacterData(int textSize)
 			glyphBuffer
 			));
 		delete[] glyphBuffer;
-		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		//GLCall(glBindTexture(GL_TEXTURE_2D, 0));
 	}
 	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));
 	delete[] buffer;

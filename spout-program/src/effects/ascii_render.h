@@ -42,7 +42,7 @@ public:
 	ascii_render(GLFWwindow*);
 	SpoutOutTex Draw();
 	void UpdateImage(const cv::Mat&);
-	void UpdateState(float, int, glm::vec4, glm::vec4);
+	void UpdateState(int, int, glm::vec4, glm::vec4);
 private:
 	void UpdateProjection();
 	void LoadCharacterData(int = 100);
@@ -53,12 +53,13 @@ private:
 	InputImage m_inputImage;
 	FT_Face m_face;
 	unsigned int m_VBO = 0, m_VAO = 0, m_EBO = 0, m_iVBO = 0, m_iVBO2 = 0, m_FBO = 0, m_outTex = 0, m_textArray = 0, m_inputTex = 0;
-	float m_charSize = 50.0f;
+	//float m_charSize = 50.0f;
+	int m_charSize = 10;
 	GenericGlyphData m_vertices[4] = {
-		{0.0f,  m_charSize},
+		{0.0f,  (float)m_charSize},
 		{0.0f, 0.0f},
-		{m_charSize, 0.0f},
-		{m_charSize,  m_charSize}
+		{(float)m_charSize, 0.0f},
+		{(float)m_charSize,  (float)m_charSize}
 	};
 	unsigned int indices[6] = { 0, 1, 3, 1, 2, 3 };
 	InstanceData* m_positions;

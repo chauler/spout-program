@@ -10,16 +10,14 @@ const vec2 vertices[] = vec2[](
 	vec2(1.0, 0.0)
 );
 
-out vec2 normalizedPos;
 out vec2 glyphTexCoords;
 
 uniform mat4 projection;
-uniform vec2 imgDims;
-uniform float charSize;
+uniform ivec2 imgDims;
+uniform int charSize;
 
 void main()
 {
     gl_Position = projection * vec4(vertex.x + (charSize * position.x), (imgDims.y * charSize) - vertex.y - (charSize * position.y), 0.0, 1.0);
 	glyphTexCoords = vertices[gl_VertexID];
-	normalizedPos = position.xy / imgDims.xy;
 }  

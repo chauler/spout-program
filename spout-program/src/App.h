@@ -32,7 +32,7 @@ private:
 
 
 	//App State editable in the GUI
-	float m_charSize = 10.0f;
+	int m_charSize = 10;
 	int m_charRes = 100, m_cols = 100, m_rows = 100;
 	float m_bgColor[4]{1.0f, 1.0f, 1.0f, 0.0f};
 	float m_charColor[4]{1.0f, 1.0f, 1.0f, 1.0f};

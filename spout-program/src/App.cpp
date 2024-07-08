@@ -96,7 +96,7 @@ void App::DrawGUI() {
         //m_source.reset();
         m_source = std::make_unique<CamSource>();
     }
-    ImGui::SliderFloat("Char Size", &m_charSize, 1.0f, 100.0f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
+    ImGui::SliderInt("Char Size", &m_charSize, 1, 100, "%d", ImGuiSliderFlags_AlwaysClamp);
     ImGui::SliderInt("Char Resolution", &m_charRes, 1, 100, "%d", ImGuiSliderFlags_AlwaysClamp);
     ImGui::SliderInt("Width", &m_cols, 0, 1000, "%d", ImGuiSliderFlags_AlwaysClamp);
     ImGui::SliderInt("Height", &m_rows, 0, 1000, "%d", ImGuiSliderFlags_AlwaysClamp);

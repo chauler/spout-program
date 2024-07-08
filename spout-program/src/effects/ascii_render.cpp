@@ -89,8 +89,8 @@ SpoutOutTex ascii_render::Draw() {
 	//Update uniforms to prep for drawing
 	shader.Bind();
 	GLCall(glUniformMatrix4fv(shader.GetUniform("projection"), 1, NULL, glm::value_ptr(glm::ortho(0.0f, static_cast<float>(m_charSize * m_inputImage.w), 0.0f, static_cast<float>(m_charSize * m_inputImage.h)))));
-	GLCall(glUniform2f(shader.GetUniform("imgDims"), m_inputImage.w, m_inputImage.h));
-	GLCall(glUniform1f(shader.GetUniform("charSize"), m_charSize));
+	GLCall(glUniform2i(shader.GetUniform("imgDims"), m_inputImage.w, m_inputImage.h));
+	GLCall(glUniform1i(shader.GetUniform("charSize"), m_charSize));
 	GLCall(glUniform1f(shader.GetUniform("charsetSize"), m_charsetSize));
 	
 	GLCall(glBindVertexArray(m_VAO));
@@ -111,7 +111,7 @@ SpoutOutTex ascii_render::Draw() {
 	GLCall(glActiveTexture(GL_TEXTURE0));
 	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-	return { m_outTex, (int)m_charSize * m_inputImage.w, (int)m_charSize * m_inputImage.h };
+	return { m_outTex, m_charSize * m_inputImage.w, m_charSize * m_inputImage.h };
 }
 
 void ascii_render::UpdateImage(const cv::Mat& image)
@@ -143,14 +143,14 @@ void ascii_render::UpdateImage(const cv::Mat& image)
 	GLCall(glActiveTexture(GL_TEXTURE0));
 }
 
-void ascii_render::UpdateState(float charSize, int charRes, glm::vec4 bgColor, glm::vec4 charColor) {
+void ascii_render::UpdateState(int charSize, int charRes, glm::vec4 bgColor, glm::vec4 charColor) {
 	ZoneScoped;
 	if (charSize != m_charSize) {
 		m_charSize = charSize;
-		m_vertices[0].y = m_charSize;
-		m_vertices[2].x = m_charSize;
-		m_vertices[3].x = m_charSize;
-		m_vertices[3].y = m_charSize;
+		m_vertices[0].y = (float)m_charSize;
+		m_vertices[2].x = (float)m_charSize;
+		m_vertices[3].x = (float)m_charSize;
+		m_vertices[3].y = (float)m_charSize;
 		GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_VBO));
 		GLCall(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(m_vertices), m_vertices););
 		GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_VBO));

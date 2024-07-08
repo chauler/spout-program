@@ -135,5 +135,6 @@
     <None Include="res\shaders\text.vs" />
     <None Include="res\shaders\text.fs" />
     <None Include="res\shaders\edge.fs" />
+    <None Include="res\shaders\edge.vs" />
   </ItemGroup>
 </Project>

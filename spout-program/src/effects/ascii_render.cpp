@@ -14,6 +14,8 @@ ascii_render::ascii_render(GLFWwindow* window) : window(window), m_charsetSize(3
 	LoadCharacterData();
 	shader.AddShader(GL_VERTEX_SHADER, "res/shaders/text.vs");
 	shader.AddShader(GL_FRAGMENT_SHADER, "res/shaders/text.fs");
+	//shader.AddShader(GL_VERTEX_SHADER, "res/shaders/edge.vs");
+	//shader.AddShader(GL_FRAGMENT_SHADER, "res/shaders/edge.fs");
 	shader.CompileShader();
 	shader.Bind();
 	GLCall(glUniformMatrix4fv(shader.GetUniform("projection"), 1, NULL, glm::value_ptr(glm::ortho(0.0f, static_cast<float>(m_winW), 0.0f, static_cast<float>(m_winH)))));
@@ -92,6 +94,7 @@ SpoutOutTex ascii_render::Draw() {
 	GLCall(glUniform2i(shader.GetUniform("imgDims"), m_inputImage.w, m_inputImage.h));
 	GLCall(glUniform1i(shader.GetUniform("charSize"), m_charSize));
 	GLCall(glUniform1f(shader.GetUniform("charsetSize"), m_charsetSize));
+	GLCall(glUniform2i(shader.GetUniform("outputSize"), m_charSize * m_inputImage.w, m_charSize * m_inputImage.h));
 	
 	GLCall(glBindVertexArray(m_VAO));
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_FBO));

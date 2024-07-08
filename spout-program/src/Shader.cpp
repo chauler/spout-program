@@ -21,8 +21,9 @@ void Shader::AddShader(GLuint type, const std::string& filepath)
 	glGetShaderiv(id, GL_COMPILE_STATUS, &success);
 	if (!success)
 	{
+		std::string typeName = type == GL_VERTEX_SHADER ? "VERTEX" : "FRAGMENT";
 		glGetShaderInfoLog(id, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+		std::cout << "ERROR::SHADER::"<< typeName <<"::COMPILATION_FAILED\n" << infoLog << std::endl;
 	}
 	shaders.push_back(id);
 }
@@ -38,7 +39,7 @@ void Shader::CompileShader() {
 	if (!success)
 	{
 		glGetShaderInfoLog(m_programID, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+		std::cout << "ERROR::SHADER::LINKING_FAILED\n" << infoLog << std::endl;
 	}
 	for (unsigned int id : shaders) {
 		GLCall(glDeleteShader(id));

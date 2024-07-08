@@ -215,6 +215,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="res\shaders\edge.fs" />
+    <None Include="res\shaders\edge.vs" />
     <None Include="res\shaders\sample.fs" />
     <None Include="res\shaders\sample.vs" />
     <None Include="res\shaders\text.fs" />

@@ -1,6 +1,5 @@
 #version 430 core
-layout (location = 0) in vec2 vertex; // <vec2 pos>
-layout (location = 1) in vec2 position; // <float col, float row>
+layout (location = 0) in vec4 vertex; // <vec2 pos, vec2 uv>
 const vec2 vertices[] = vec2[](
 	vec2(0.0, 0.0), 
 	vec2(0.0, 1.0), 
@@ -10,14 +9,7 @@ const vec2 vertices[] = vec2[](
 	vec2(1.0, 0.0)
 );
 
-//out vec2 glyphTexCoords;
-
-uniform mat4 projection;
-uniform ivec2 imgDims;
-uniform int charSize;
-
 void main()
 {
-    gl_Position = projection * vec4(vertex.x + (charSize * position.x), (imgDims.y * charSize) - vertex.y - (charSize * position.y), 0.0, 1.0);
-	//glyphTexCoords = vertices[gl_VertexID];
+    gl_Position = vec4(vertex.xy, 0.0, 1.0);
 }  

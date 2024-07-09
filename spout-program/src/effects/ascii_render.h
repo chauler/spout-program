@@ -13,6 +13,7 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 #include <opencv2/core.hpp>
+#include <Texture2D.h>
 #include FT_FREETYPE_H
 
 struct GenericGlyphData {
@@ -46,15 +47,15 @@ public:
 private:
 	void UpdateProjection();
 	void LoadCharacterData(int = 100);
-	Shader shader;
+	Shader m_asciiShader, m_sobelShader;
 	FontLoader fontLoader;
 	GLFWwindow* window = nullptr;
 	int m_winW, m_winH = 0;
 	InputImage m_inputImage;
 	FT_Face m_face;
-	unsigned int m_VBO = 0, m_VAO = 0, m_EBO = 0, m_iVBO = 0, m_iVBO2 = 0, m_FBO = 0, m_outTex = 0, m_textArray = 0, m_inputTex = 0;
-	//float m_charSize = 50.0f;
-	int m_charSize = 10;
+	unsigned int m_VBO = 0, m_VAO = 0, m_EBO = 0, m_iVBO = 0, m_iVBO2 = 0, m_outputFBO = 0, m_outTex = 0, m_textArray = 0, m_edgeArray = 0, m_inputTex = 0;
+	Texture2D m_intermediate = {}, m_intermediate2 = {};
+	unsigned int m_charSize = 10;
 	GenericGlyphData m_vertices[4] = {
 		{0.0f,  (float)m_charSize},
 		{0.0f, 0.0f},

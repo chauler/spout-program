@@ -12,6 +12,7 @@ ascii_render::ascii_render(GLFWwindow* window) : window(window), m_charsetSize(1
 	fontLoader.LoadFace("res/fonts/Roboto-Regular.ttf");
 	m_face = fontLoader.GetFace();
 	LoadCharacterData();
+
 	m_asciiShader.AddShader(GL_VERTEX_SHADER, "res/shaders/text.vs");
 	m_asciiShader.AddShader(GL_FRAGMENT_SHADER, "res/shaders/text.fs");
 	m_asciiShader.CompileShader();
@@ -42,6 +43,7 @@ ascii_render::ascii_render(GLFWwindow* window) : window(window), m_charsetSize(1
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		exit(1);
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+
 	GLCall(glGenTextures(1, &m_inputTex));
 	GLCall(glActiveTexture(GL_TEXTURE1));
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_inputTex));
@@ -49,6 +51,7 @@ ascii_render::ascii_render(GLFWwindow* window) : window(window), m_charsetSize(1
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	GLCall(glActiveTexture(GL_TEXTURE0));
+
 	GLCall(glGenBuffers(1, &m_VBO));
 	GLCall(glGenBuffers(1, &m_EBO));
 	GLCall(glGenVertexArrays(1, &m_VAO));
@@ -69,7 +72,6 @@ ascii_render::ascii_render(GLFWwindow* window) : window(window), m_charsetSize(1
 	GLCall(glBindVertexArray(0));
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-
 }
 
 SpoutOutTex ascii_render::Draw() {
@@ -82,7 +84,7 @@ SpoutOutTex ascii_render::Draw() {
 			1.0, 1.0,   1.0, 1.0,
 	};
 
-	m_intermediate.Allocate(GL_RGBA, m_inputImage.w, m_inputImage.h, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+	m_intermediate.Allocate(GL_RGBA, m_inputImage.image.cols, m_inputImage.image.rows, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 	m_intermediate.StartDrawing();
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_iVBO));
 	GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW));
@@ -93,7 +95,7 @@ SpoutOutTex ascii_render::Draw() {
 	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO));
 	GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_DYNAMIC_DRAW));
 	m_sobelShader.Bind();
-	GLCall(glUniform2i(m_sobelShader.GetUniform("outputSize"), m_inputImage.w, m_inputImage.h));
+	GLCall(glUniform2i(m_sobelShader.GetUniform("outputSize"), m_inputImage.image.cols, m_inputImage.image.rows));
 	GLCall(glActiveTexture(GL_TEXTURE1));
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_inputTex));
 	GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
@@ -104,21 +106,20 @@ SpoutOutTex ascii_render::Draw() {
 	GLCall(glDisableVertexAttribArray(0));
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-	//return { m_intermediate.GetID(), m_inputImage.w, m_inputImage.h};
+	//return { m_intermediate.GetID(), (unsigned int)m_inputImage.image.cols, (unsigned int)m_inputImage.image.rows };
 	
 	//Update column and row numbers for each vertex
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_iVBO));
 	GLCall(glBufferData(GL_ARRAY_BUFFER, m_inputImage.h * m_inputImage.w * sizeof(InstanceData), m_positions, GL_DYNAMIC_DRAW));
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
-	UpdateProjection();
 	
 	//Update uniforms to prep for drawing
 	m_asciiShader.Bind();
-	GLCall(glUniformMatrix4fv(m_asciiShader.GetUniform("projection"), 1, NULL, glm::value_ptr(glm::ortho(0.0f, static_cast<float>(m_charSize * m_inputImage.w), 0.0f, static_cast<float>(m_charSize * m_inputImage.h)))));
+	GLCall(glUniformMatrix4fv(m_asciiShader.GetUniform("projection"), 1, NULL, glm::value_ptr(glm::ortho(0.0f, static_cast<float>(m_inputImage.image.cols), 0.0f, static_cast<float>(m_inputImage.image.rows)))));
 	GLCall(glUniform2i(m_asciiShader.GetUniform("imgDims"), m_inputImage.w, m_inputImage.h));
 	GLCall(glUniform1i(m_asciiShader.GetUniform("charSize"), m_charSize));
 	GLCall(glUniform1f(m_asciiShader.GetUniform("charsetSize"), m_charsetSize));
-	GLCall(glUniform2i(m_asciiShader.GetUniform("outputSize"), m_charSize * m_inputImage.w, m_charSize * m_inputImage.h));
+	GLCall(glUniform2i(m_asciiShader.GetUniform("outputSize"), m_inputImage.image.cols, m_inputImage.image.rows));
 	
 	//Set up vertex data
 	GLCall(glBindVertexArray(m_VAO));
@@ -127,7 +128,7 @@ SpoutOutTex ascii_render::Draw() {
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_outputFBO));
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_outTex));
 	glClear(GL_COLOR_BUFFER_BIT);
-	unsigned int outputW = m_charSize * m_inputImage.w, outputH = m_charSize * m_inputImage.h;
+	unsigned int outputW = m_inputImage.image.cols, outputH = m_inputImage.image.rows;
 	GLCall(glViewport(0, 0, outputW, outputH));
 	
 	//Set up samplers and draw
@@ -160,27 +161,29 @@ void ascii_render::UpdateImage(const cv::Mat& image)
 		if (m_positions != nullptr) {
 			delete(m_positions);
 		}
-		m_positions = new InstanceData[image.cols * image.rows];
-		for (int row = 0; row < image.rows; row++) {
-			for (int col = 0; col < image.cols; col++) {
-				m_positions[row * image.cols + col] = { (float)col, (float)row };
+		int newCols = image.cols / m_charSize;
+		int newRows = image.rows / m_charSize;
+		m_positions = new InstanceData[newCols * newRows];
+		for (int row = 0; row < newRows; row++) {
+			for (int col = 0; col < newCols; col++) {
+				m_positions[row * newRows + col] = { (float)col, (float)row };
 			}
 		}
-		m_inputImage.w = image.cols;
-		m_inputImage.h = image.rows;
+		m_inputImage.w = newCols;
+		m_inputImage.h = newRows;
 		GLCall(glActiveTexture(GL_TEXTURE0));
 		GLCall(glBindTexture(GL_TEXTURE_2D, m_outTex));
-		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_charSize * m_inputImage.w, m_charSize * m_inputImage.h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
+		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_inputImage.image.cols, m_inputImage.image.rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
 	}
 	GLCall(glActiveTexture(GL_TEXTURE1));
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_inputTex));
-	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_inputImage.w, m_inputImage.h, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_inputImage.image.data));
+	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_inputImage.image.cols, m_inputImage.image.rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_inputImage.image.data));
 	GLCall(glActiveTexture(GL_TEXTURE0));
 }
 
 void ascii_render::UpdateState(int charSize, int charRes, glm::vec4 bgColor, glm::vec4 charColor) {
 	ZoneScoped;
-	if (charSize != m_charSize) {
+	/*if (charSize != m_charSize) {
 		m_charSize = charSize;
 		m_vertices[0].y = (float)m_charSize;
 		m_vertices[2].x = (float)m_charSize;
@@ -191,11 +194,11 @@ void ascii_render::UpdateState(int charSize, int charRes, glm::vec4 bgColor, glm
 		GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_VBO));
 		GLCall(glBindTexture(GL_TEXTURE_2D, m_outTex));
 		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_charSize * m_inputImage.w, m_charSize * m_inputImage.h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
-	}
-	if (charRes != m_charRes) {
+	}*/
+	/*if (charRes != m_charRes) {
 		m_charRes = charRes;
 		LoadCharacterData(m_charRes);
-	}
+	}*/
 
 	if (bgColor != m_bgColor) {
 		m_bgColor = bgColor;

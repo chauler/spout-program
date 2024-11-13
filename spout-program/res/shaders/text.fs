@@ -43,16 +43,12 @@ void main()
         }
         vec4 glyphSample = vec4(1.0, 1.0, 1.0, texelFetch(edgeArray, ivec3(pixelPosition.x, textureSize(textArray, 0).y - pixelPosition.y, glyphIndex), 0).r);
         color = inputSample * glyphSample;
-        //if(glyphIndex == 3 && glyphSample.w == 0.0) {
-        //    color = sobelSample;
-        //}
-        //if(glyphSample.w == 0.0) {
-        //    color = vec4(sobelSample.x, sobelSample.y, 1., 1.);
-        //}
-        //color = vec4(angle);
+        if(glyphSample.w == 0.0) {
+            color = bgColor;
+        }
     } else {
         //Calculate luminance for use in sampling the glyph
-        float luminance = float(inputSample.r * 0.2126 + inputSample.g * .7152 + inputSample.b * .0722) * (charsetSize - 1);
+        float luminance = float(inputSample.r * 0.2126 + inputSample.g * .7152 + inputSample.b * .0722) * (charsetSize);
         vec4 glyphSample = vec4(1.0, 1.0, 1.0, texelFetch(textArray, ivec3(pixelPosition.x, textureSize(textArray, 0).y - pixelPosition.y, luminance), 0).r);
         color = inputSample * glyphSample;
         if(luminance > 0.1 && glyphSample.w == 0.0) {

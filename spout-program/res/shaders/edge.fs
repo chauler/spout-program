@@ -59,6 +59,7 @@ vec3 sobel(in float stepx, in float stepy, in vec2 center) {
     //}
     float angle = atan(y, x);
     angle = angle / M_PI * 0.5 + 0.5;
+    //return vec3(x,y,0.);
     return vec3(x,y,angle);
 }
 

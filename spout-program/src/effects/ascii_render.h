@@ -46,7 +46,7 @@ public:
 	void UpdateState(int, int, glm::vec4, glm::vec4);
 private:
 	void UpdateProjection();
-	void LoadCharacterData(int = 100);
+	void LoadCharacterData(int = 16);
 	Shader m_asciiShader, m_sobelShader;
 	FontLoader fontLoader;
 	GLFWwindow* window = nullptr;
@@ -55,7 +55,7 @@ private:
 	FT_Face m_face;
 	unsigned int m_VBO = 0, m_VAO = 0, m_EBO = 0, m_iVBO = 0, m_iVBO2 = 0, m_outputFBO = 0, m_outTex = 0, m_textArray = 0, m_edgeArray = 0, m_inputTex = 0;
 	Texture2D m_intermediate = {}, m_intermediate2 = {};
-	unsigned int m_charSize = 10;
+	unsigned int m_charSize = 16;
 	GenericGlyphData m_vertices[4] = {
 		{0.0f,  (float)m_charSize},
 		{0.0f, 0.0f},
@@ -65,7 +65,7 @@ private:
 	unsigned int indices[6] = { 0, 1, 3, 1, 2, 3 };
 	InstanceData* m_positions;
 	float m_pixelSize = 10.0f;
-	int m_charRes = 100;
+	int m_charRes = 16;
 	glm::vec4 m_bgColor{1.0, 0.5, 0.5, 1.0};
 	glm::vec4 m_charColor{ 1.0, 1.0, 1.0, 1.0 };
 	std::map<unsigned int, std::wstring> m_charSets{

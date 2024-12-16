@@ -13,23 +13,10 @@ uniform vec4 bgColor;
 void main()
 {   
     //Colored text implementation
-    vec4 sampled= vec4(1.0, 1.0, 1.0, texture(textArray, TexCoords).r);
+    vec4 sampled = vec4(1.0, 1.0, 1.0, texture(textArray, TexCoords).r);
     vec4 sampledTemp = texture(inputTexture, outPosition.xy);
     color = sampledTemp * sampled;
     if(TexCoords.z > 0.1 && sampled.w == 0.0) {
         color = bgColor;
     }
-    //not empty space
-    //if (TexCoords.z > 0.1) {
-    //    //black pixel
-    //    if(sampled.w == 0.0 ) {
-    //        color = bgColor;
-    //    } else {
-    //        color = vec4(charColor);
-    //    }
-    //}
-    //else {
-    //    //Make empty space blank
-    //    color = vec4(charColor.xyz, 0.0);
-    //}
 }

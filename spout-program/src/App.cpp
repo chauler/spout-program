@@ -59,6 +59,7 @@ void IconifyCallback(GLFWwindow* window, int iconified) {
 App::App(GLFWwindow* window): m_window(window), m_ImGuiIO(ImGui::GetIO()), m_ascii(m_window) {
     glfwSetWindowIconifyCallback(window, IconifyCallback);
     m_source = std::make_unique<SpoutSource>("VTubeStudioSpout");
+    //m_source = std::make_unique<CamSource>();
     m_sender = GetSpout();
     m_sender->SetSenderName("SpoutProgram");
     m_spoutSource.Allocate(GL_RGBA, 1920, 1017, GL_RGBA, GL_UNSIGNED_BYTE, std::make_unique<unsigned char[]>(1920 * 1017 * 4).get());
@@ -125,7 +126,7 @@ void App::RunLogic() {
     ZoneScoped;
     m_source->GetNextFrame(m_spoutSource.GetID(), GL_TEXTURE_2D);
     m_spoutSourceData = m_source->GetFrameData();
-    cv::Mat mat = GetImageFromTexture(m_spoutSource.GetID(), m_cols, m_rows);
+    cv::Mat mat = GetImageFromTexture(m_spoutSource.GetID());
     m_ascii.UpdateImage(mat);
     m_ascii.UpdateState(m_charSize,
         m_charRes,

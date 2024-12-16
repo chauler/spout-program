@@ -15,16 +15,13 @@ out vec2 outPosition;
 out vec3 TexCoords;
 out vec3 pixelColor;
 
-uniform mat4 projection;
-uniform vec2 windowDims;
 uniform vec2 imgDims;
-uniform float charSize;
 
 void main()
 {
-    //gl_Position = projection * vec4(vertex.x + (windowDims.x / imgDims.x * position.x), windowDims.y - (vertex.y + (windowDims.y / imgDims.y * position.y)), 0.0, 1.0);
-    gl_Position = projection * vec4(vertex.x + (charSize * position.x), (imgDims.y * charSize) - vertex.y - (charSize * position.y), 0.0, 1.0);
+    vec2 unNormalizedPosition = vec2(vertex.x * 1.0 / imgDims.x + position.x / imgDims.x, vertex.y * 1.0 / imgDims.y + position.y / imgDims.y);
+	gl_Position = vec4(unNormalizedPosition.x * 2.0 - 1.0, -(unNormalizedPosition.y * 2.0 - 1.0), 0.0, 1.0);
 	TexCoords = vec3(vertices[gl_VertexID], position.z);
-	pixelColor = inColor;
+	pixelColor = vec3(vertices[gl_VertexID], 0.0);
 	outPosition = position.xy / imgDims.xy;
 }  

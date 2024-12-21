@@ -135,5 +135,8 @@
     <None Include="res\shaders\text.vs" />
     <None Include="res\shaders\text.fs" />
     <None Include="res\shaders\compute.cs" />
+    <None Include="res\shaders\edge.vs" />
+    <None Include="res\shaders\edge.fs" />
+    <None Include="res\shaders\gaussian.fs" />
   </ItemGroup>
 </Project>

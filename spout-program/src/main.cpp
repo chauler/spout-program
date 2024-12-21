@@ -75,7 +75,7 @@ int main(int, char**)
     {
         glfwPollEvents();
         app.RunLogic();
-        //app.DrawGUI();
+        app.DrawGUI();
         glfwSwapBuffers(window);
         FrameMark;
     }

@@ -48,14 +48,15 @@ public:
 private:
 	void CalculateCharsFromLuminance();
 	void LoadCharacterData(int = 100);
-	Shader shader, computeShader, screenRenderShader;
+	Shader shader, computeShader, sobelShader, dGaussianShader, screenRenderShader;
 	unsigned int m_computeShaderOutput = 0, testVAO = 0, testVBO = 0, testEBO = 0;
 	FontLoader fontLoader;
 	GLFWwindow* window = nullptr;
 	int m_winW, m_winH = 0;
 	InputImage m_inputImage;
 	FT_Face m_face;
-	unsigned int m_VBO = 0, m_VAO = 0, m_EBO = 0, m_iVBO = 0, m_iVBO2 = 0, m_FBO = 0, m_outTex = 0, m_textArray = 0, m_inputTex = 0;
+	unsigned int m_VBO = 0, m_VAO = 0, m_EBO = 0, m_iVBO = 0, m_iVBO2 = 0, m_edgeArray = 0,
+		m_FBO = 0, m_outTex = 0, m_textArray = 0, m_inputTex = 0, m_intermediate = 0, m_intermediateFBO = 0, m_intermediate2 = 0, m_intermediateFBO2 = 0;
 	float m_charSize = 8.0f;
 	GenericGlyphData m_vertices[4] = {
 		{0.0f,  1.0f, 15.0f},

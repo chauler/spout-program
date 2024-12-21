@@ -21,17 +21,19 @@ ascii_render::ascii_render(GLFWwindow* window) : window(window), m_charset(m_cha
 	GLCall(glGenTextures(1, &m_computeShaderOutput));
 	GLCall(glActiveTexture(GL_TEXTURE0));
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_computeShaderOutput));
-	/*glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);*/
-	glTextureStorage2D(m_computeShaderOutput, 1, GL_RGBA32F, 80, 60);
-	glBindImageTexture(0, m_computeShaderOutput, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+	GLCall(glTextureStorage2D(m_computeShaderOutput, 1, GL_RGBA8, 80, 60));
+	GLCall(glBindImageTexture(0, m_computeShaderOutput, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8));
 	GLCall(glBindTexture(GL_TEXTURE_2D, 0));
 
 	screenRenderShader.AddShader(GL_VERTEX_SHADER, "res/shaders/sample.vs");
 	screenRenderShader.AddShader(GL_FRAGMENT_SHADER, "res/shaders/sample.fs");
 	screenRenderShader.CompileShader();
+	sobelShader.AddShader(GL_VERTEX_SHADER, "res/shaders/edge.vs");
+	sobelShader.AddShader(GL_FRAGMENT_SHADER, "res/shaders/edge.fs");
+	sobelShader.CompileShader();
+	dGaussianShader.AddShader(GL_VERTEX_SHADER, "res/shaders/edge.vs");
+	dGaussianShader.AddShader(GL_FRAGMENT_SHADER, "res/shaders/gaussian.fs");
+	dGaussianShader.CompileShader();
 
 	shader.AddShader(GL_VERTEX_SHADER, "res/shaders/text.vs");
 	shader.AddShader(GL_FRAGMENT_SHADER, "res/shaders/text.fs");
@@ -58,13 +60,43 @@ ascii_render::ascii_render(GLFWwindow* window) : window(window), m_charset(m_cha
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		exit(1);
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+
 	GLCall(glGenTextures(1, &m_inputTex));
 	GLCall(glActiveTexture(GL_TEXTURE1));
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_inputTex));
 	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_winW, m_winH, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+	GLCall(glGenFramebuffers(1, &m_intermediateFBO));
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_intermediateFBO));
+	GLCall(glGenTextures(1, &m_intermediate));
+	GLCall(glBindTexture(GL_TEXTURE_2D, m_intermediate));
+	//GLCall(glTextureStorage2D(m_intermediate, 1, GL_RGBA8, 80, 60));
+	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 80, 60, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	GLCall(glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_intermediate, 0));
+	GLCall(glDrawBuffers(1, DrawBuffers));
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		exit(1);
+
+	GLCall(glGenFramebuffers(1, &m_intermediateFBO2));
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_intermediateFBO2));
+	GLCall(glGenTextures(1, &m_intermediate2));
+	GLCall(glBindTexture(GL_TEXTURE_2D, m_intermediate2));
+	//GLCall(glTextureStorage2D(m_intermediate, 1, GL_RGBA8, 80, 60));
+	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 80, 60, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	GLCall(glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_intermediate2, 0));
+	GLCall(glDrawBuffers(1, DrawBuffers));
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		exit(1);
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+	GLCall(glBindTexture(GL_TEXTURE_2D, 0));
 	GLCall(glActiveTexture(GL_TEXTURE0));
+
 	GLCall(glGenBuffers(1, &m_VBO));
 	GLCall(glGenBuffers(1, &m_EBO));
 	GLCall(glGenVertexArrays(1, &m_VAO));
@@ -93,10 +125,10 @@ ascii_render::ascii_render(GLFWwindow* window) : window(window), m_charset(m_cha
 
 	float vertices[] = {
 		// positions          // colors           // texture coords
-		 0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
-		 0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
-		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
-		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left 
+		 1.0f,  1.0f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
+		 1.0f, -1.0f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
+		-1.0f, -1.0f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
+		-1.0f,  1.0f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left 
 	};
 	unsigned int indices[] = {
 		0, 1, 3, // first triangle
@@ -123,7 +155,7 @@ ascii_render::ascii_render(GLFWwindow* window) : window(window), m_charset(m_cha
 SpoutOutTex ascii_render::Draw() {
 	ZoneScoped;
 	//Process image. Textures in same order as m_charset, so index == layer to sample from
-	CalculateCharsFromLuminance();
+	//CalculateCharsFromLuminance();
 
 	//This buffer contains the layer each position will sample its texture from
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_iVBO));
@@ -132,25 +164,51 @@ SpoutOutTex ascii_render::Draw() {
 	GLCall(glBufferData(GL_ARRAY_BUFFER, m_inputImage.rows * m_inputImage.cols * sizeof(InstanceData), m_colors, GL_DYNAMIC_DRAW));
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 
+	/*GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_intermediateFBO));
+	GLCall(glViewport(0, 0, m_inputImage.image.cols, m_inputImage.image.rows));
+	glClear(GL_COLOR_BUFFER_BIT);
+	sobelShader.Bind();
+	GLCall(glBindVertexArray(testVAO));
+	GLCall(glActiveTexture(GL_TEXTURE0));
+	GLCall(glBindTexture(GL_TEXTURE_2D, m_inputTex));
+	GLCall(glUniform2i(sobelShader.GetUniform("outputSize"), m_inputImage.image.cols, m_inputImage.image.rows));
+	GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
+	GLCall(glBindVertexArray(0));
+	sobelShader.Unbind();*/
+	//return { m_intermediate, (unsigned int)m_inputImage.image.cols, (unsigned int)m_inputImage.image.rows };
+
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_intermediateFBO2));
+	GLCall(glViewport(0, 0, m_inputImage.image.cols, m_inputImage.image.rows));
+	glClear(GL_COLOR_BUFFER_BIT);
+	sobelShader.Bind();
+	GLCall(glBindVertexArray(testVAO));
+	GLCall(glActiveTexture(GL_TEXTURE0));
+	GLCall(glBindTexture(GL_TEXTURE_2D, m_inputTex));
+	GLCall(glUniform2i(sobelShader.GetUniform("outputSize"), m_inputImage.image.cols, m_inputImage.image.rows));
+	GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
+	GLCall(glBindVertexArray(0));
+	sobelShader.Unbind();
+	//return { m_intermediate2, (unsigned int)m_inputImage.image.cols, (unsigned int)m_inputImage.image.rows };
+
 	computeShader.Bind();
-	GLCall(glBindImageTexture(0, m_computeShaderOutput, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F));
-	GLCall(glBindImageTexture(1, m_inputTex, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8));
+	GLCall(glBindImageTexture(0, m_computeShaderOutput, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8));
+	GLCall(glBindImageTexture(1, m_intermediate2, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8));
 	GLCall(glDispatchCompute(ceil(m_inputImage.cols), ceil(m_inputImage.rows), 1));
 	GLCall(glMemoryBarrier(GL_ALL_BARRIER_BITS));
+	return { m_computeShaderOutput, (unsigned int)m_inputImage.cols, (unsigned int)m_inputImage.rows };
 
-	//Update uniforms to prep for drawing
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_FBO));
+	GLCall(glViewport(0, 0, m_inputImage.image.cols, m_inputImage.image.rows));
 	shader.Bind();
 	GLCall(glUniform2f(shader.GetUniform("imgDims"), m_inputImage.cols, m_inputImage.rows));
-	
 	GLCall(glBindVertexArray(m_VAO));
-	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_FBO));
 	glClear(GL_COLOR_BUFFER_BIT);
-
-	//Set viewport == texture size
-	GLCall(glViewport(0, 0, m_inputImage.image.cols, m_inputImage.image.rows));
+	GLCall(glActiveTexture(GL_TEXTURE0));
 	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, m_textArray));
 	GLCall(glActiveTexture(GL_TEXTURE1));
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_inputTex));
+	GLCall(glActiveTexture(GL_TEXTURE2));
+	GLCall(glBindTexture(GL_TEXTURE_2D, m_computeShaderOutput));
 	GLCall(glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, m_inputImage.cols * m_inputImage.rows));
 	GLCall(glBindVertexArray(0));
 	shader.Unbind();
@@ -159,15 +217,15 @@ SpoutOutTex ascii_render::Draw() {
 	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 
-	glClear(GL_COLOR_BUFFER_BIT);
+	/*glClear(GL_COLOR_BUFFER_BIT);
 	screenRenderShader.Bind();
 	GLCall(glBindVertexArray(testVAO));
-	GLCall(glBindTexture(GL_TEXTURE_2D, m_computeShaderOutput));
+	GLCall(glBindTexture(GL_TEXTURE_2D, m_outTex));
 	GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
-	GLCall(glBindVertexArray(testVAO));
-	screenRenderShader.Unbind();
+	GLCall(glBindVertexArray(0));
+	screenRenderShader.Unbind();*/
 
-	return { m_computeShaderOutput, (unsigned int)m_inputImage.cols, (unsigned int)m_inputImage.rows };
+	//return { m_computeShaderOutput, (unsigned int)m_inputImage.cols, (unsigned int)m_inputImage.rows };
 	return { m_outTex, (unsigned int)m_inputImage.image.cols, (unsigned int)m_inputImage.image.rows };
 }
 
@@ -177,8 +235,8 @@ void ascii_render::UpdateImage(const cv::Mat& image)
 	//New img is different size to previously allocated.
 	//(Check for nullptr to not delete when uninitialized)
 	if (image.cols != m_inputImage.image.cols || image.rows != m_inputImage.image.rows) {
-		m_inputImage.cols = image.cols;// / m_charSize;
-		m_inputImage.rows = image.rows;// / m_charSize;
+		m_inputImage.cols = image.cols / m_charSize;
+		m_inputImage.rows = image.rows / m_charSize;
 		if (m_positions != nullptr) {
 			delete(m_positions);
 		}
@@ -197,15 +255,16 @@ void ascii_render::UpdateImage(const cv::Mat& image)
 		GLCall(glGenTextures(1, &m_computeShaderOutput));
 		GLCall(glActiveTexture(GL_TEXTURE0));
 		GLCall(glBindTexture(GL_TEXTURE_2D, m_computeShaderOutput));
-		/*glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);*/
-		GLCall(glTextureStorage2D(m_computeShaderOutput, 1, GL_RGBA32F, m_inputImage.cols, m_inputImage.rows));
-		GLCall(glBindImageTexture(0, m_computeShaderOutput, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F));
+		GLCall(glTextureStorage2D(m_computeShaderOutput, 1, GL_RGBA8, m_inputImage.cols, m_inputImage.rows));
+		GLCall(glBindImageTexture(0, m_computeShaderOutput, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8));
 
 		GLCall(glActiveTexture(GL_TEXTURE0));
 		GLCall(glBindTexture(GL_TEXTURE_2D, m_outTex));
+		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.cols, image.rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
+
+		GLCall(glBindTexture(GL_TEXTURE_2D, m_intermediate));
+		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.cols, image.rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
+		GLCall(glBindTexture(GL_TEXTURE_2D, m_intermediate2));
 		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.cols, image.rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
 	}
 	GLCall(glActiveTexture(GL_TEXTURE1));
@@ -272,8 +331,14 @@ void ascii_render::LoadCharacterData(int textSize)
 	//Function may be called to re-allocate textures. Only gen texture if this is first call.
 	if (m_textArray == 0) {
 		GLCall(glGenTextures(1, &m_textArray));
+		GLCall(glGenTextures(1, &m_edgeArray));
 	}
 	GLCall(glActiveTexture(GL_TEXTURE0));
+	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, m_edgeArray));
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, m_textArray));
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -314,12 +379,43 @@ void ascii_render::LoadCharacterData(int textSize)
 			glyphBuffer
 			));
 		delete[] glyphBuffer;
-		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		//GLCall(glBindTexture(GL_TEXTURE_2D, 0));
 	}
 	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));
+	unsigned char* newBuffer = new unsigned char[textSize * textSize * 4] {};
+	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, m_edgeArray));
+	GLCall(glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_R8, textSize, textSize, 4, 0, GL_RED, GL_UNSIGNED_BYTE, newBuffer));
+	//Load all edge glyphs
+	for (int i = 0; i < 4; i++) {
+		wchar_t character = "|_/\\"[i];
+		FT_Set_Pixel_Sizes(m_face, 0, textSize);
+		unsigned int glyph_index = FT_Get_Char_Index(m_face, character);
+		FT_Load_Glyph(m_face, glyph_index, FT_LOAD_DEFAULT);
+		FT_Render_Glyph(m_face->glyph, FT_RENDER_MODE_MONO);
+
+		//Mono format above represents each pixel as 1 bit
+		//Convert that to 1 byte for OpenGL. 1=white, 0=black
+		unsigned char* glyphBuffer = new unsigned char[m_face->glyph->bitmap.width * m_face->glyph->bitmap.rows];
+		int pitch = m_face->glyph->bitmap.pitch;
+		for (int row = 0; row < m_face->glyph->bitmap.rows; row++) {
+			for (int col = 0; col < m_face->glyph->bitmap.width; col++) {
+				unsigned int rowStartIndex = row * pitch;
+				unsigned char cValue = m_face->glyph->bitmap.buffer[rowStartIndex + (col >> 3)];
+				glyphBuffer[row * m_face->glyph->bitmap.width + col] = ((cValue & (128 >> (col & 7))) != 0) * 255;
+			}
+		}
+		GLCall(glTexSubImage3D(GL_TEXTURE_2D_ARRAY,
+			0,
+			0,
+			0,
+			i,
+			m_face->glyph->bitmap.width,
+			m_face->glyph->bitmap.rows,
+			1,
+			GL_RED,
+			GL_UNSIGNED_BYTE,
+			glyphBuffer
+		));
+		delete[] glyphBuffer;
+	}
 	delete[] buffer;
 }

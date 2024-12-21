@@ -14,7 +14,7 @@ ascii_render::ascii_render(GLFWwindow* window) : window(window), m_charset(m_cha
 	glfwGetWindowSize(window, &m_winW, &m_winH);
 	fontLoader.LoadFace("res/fonts/Roboto-Regular.ttf");
 	m_face = fontLoader.GetFace();
-	LoadCharacterData();
+	LoadCharacterData(8);
 
 	computeShader.AddShader(GL_COMPUTE_SHADER, "res/shaders/compute.cs");
 	computeShader.CompileShader();
@@ -195,7 +195,7 @@ SpoutOutTex ascii_render::Draw() {
 	GLCall(glBindImageTexture(1, m_intermediate2, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8));
 	GLCall(glDispatchCompute(ceil(m_inputImage.cols), ceil(m_inputImage.rows), 1));
 	GLCall(glMemoryBarrier(GL_ALL_BARRIER_BITS));
-	return { m_computeShaderOutput, (unsigned int)m_inputImage.cols, (unsigned int)m_inputImage.rows };
+	//return { m_computeShaderOutput, (unsigned int)m_inputImage.cols, (unsigned int)m_inputImage.rows };
 
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_FBO));
 	GLCall(glViewport(0, 0, m_inputImage.image.cols, m_inputImage.image.rows));
@@ -209,6 +209,8 @@ SpoutOutTex ascii_render::Draw() {
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_inputTex));
 	GLCall(glActiveTexture(GL_TEXTURE2));
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_computeShaderOutput));
+	GLCall(glActiveTexture(GL_TEXTURE3));
+	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, m_edgeArray));
 	GLCall(glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, m_inputImage.cols * m_inputImage.rows));
 	GLCall(glBindVertexArray(0));
 	shader.Unbind();
@@ -278,7 +280,7 @@ void ascii_render::UpdateState(float charSize, int charRes, glm::vec4 bgColor, g
 	ZoneScoped;
 	if (charRes != m_charRes) {
 		m_charRes = charRes;
-		LoadCharacterData(m_charRes);
+		//LoadCharacterData(m_charRes);
 	}
 
 	if (bgColor != m_bgColor) {

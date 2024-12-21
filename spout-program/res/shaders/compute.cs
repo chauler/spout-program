@@ -50,11 +50,11 @@ void main()
             avgLum += luminance[i];
         }
         avgLum = avgLum / 64;
-        uint edge = 0;
-        if (edgeTotals[1] >= edgeTotals[edge])
-        {
-            edge = 1;
-        }
+        uint edge = 1;
+        //if (edgeTotals[1] >= edgeTotals[edge])
+        //{
+        //    edge = 1;
+        //}
         if (edgeTotals[2] > edgeTotals[edge])
         {
             edge = 2;
@@ -67,27 +67,34 @@ void main()
         {
             edge = 4;
         }
-
-        if (edgeTotals[edge] < 8)
+        if (edgeTotals[0] > 48)
         {
             edge = 0;
         }
         vec4 color = vec4(0.0);
-        if (edge == 1)
+        if(edge == 0)
+        {
+            color = vec4(0.0, 0.0, 0.0, 0.0);
+        }
+        else if (edge == 1)
         {
             color = vec4(1.0, 0.0, 0.0, 1.0);
         }
-        if (edge == 2)
+        else if (edge == 2)
         {
             color = vec4(0.0, 1.0, 0.0, 1.0);
         }
-        if (edge == 3)
+        else if (edge == 3)
         {
             color = vec4(0.0, 0.0, 1.0, 1.0);
         }
-        if (edge == 4)
+        else if (edge == 4)
         {
             color = vec4(1.0, 1.0, 0.0, 1.0);
+        }
+        else
+        {
+            color = vec4(0.0);
         }
         imageStore(imgOutput, ivec2(int(gl_WorkGroupID.x), int(gl_WorkGroupID.y)), color);
     }

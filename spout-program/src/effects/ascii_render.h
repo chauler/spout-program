@@ -68,7 +68,7 @@ private:
 	InstanceData* m_positions;
 	InstanceData* m_colors;
 	float m_pixelSize = 10.0f;
-	int m_charRes = 100;
+	int m_charRes = 100, m_numChars = 16;
 	glm::vec4 m_bgColor{1.0, 0.5, 0.5, 1.0};
 	glm::vec4 m_charColor{ 1.0, 1.0, 1.0, 1.0 };
 	std::map<unsigned int, std::wstring> m_charSets{

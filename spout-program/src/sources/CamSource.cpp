@@ -10,6 +10,11 @@ CamSource::CamSource(): m_cap(0)
 	if (!m_cap.isOpened()) {
 		std::cout << "Error opening webcam capture" << std::endl;
 	}
+	else {
+		m_cap.set(cv::VideoCaptureProperties::CAP_PROP_FRAME_WIDTH, 1920);
+		m_cap.set(cv::VideoCaptureProperties::CAP_PROP_FRAME_HEIGHT, 1080);
+		m_cap.set(cv::VideoCaptureProperties::CAP_PROP_FPS, 60);
+	}
 }
 
 CamSource::~CamSource() {

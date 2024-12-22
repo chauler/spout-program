@@ -10,7 +10,7 @@
 unsigned int quadVAO = 0;
 unsigned int quadVBO;
 
-ascii_render::ascii_render(GLFWwindow* window) : window(window), m_charset(m_charSets[32]) {
+ascii_render::ascii_render(GLFWwindow* window) : window(window), m_charset(m_charSets[m_numChars]) {
 	glfwGetWindowSize(window, &m_winW, &m_winH);
 	fontLoader.LoadFace("res/fonts/Roboto-Regular.ttf");
 	m_face = fontLoader.GetFace();
@@ -21,8 +21,8 @@ ascii_render::ascii_render(GLFWwindow* window) : window(window), m_charset(m_cha
 	GLCall(glGenTextures(1, &m_computeShaderOutput));
 	GLCall(glActiveTexture(GL_TEXTURE0));
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_computeShaderOutput));
-	GLCall(glTextureStorage2D(m_computeShaderOutput, 1, GL_RGBA8, 80, 60));
-	GLCall(glBindImageTexture(0, m_computeShaderOutput, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8));
+	GLCall(glTextureStorage2D(m_computeShaderOutput, 1, GL_RGBA8UI, 80, 60));
+	GLCall(glBindImageTexture(0, m_computeShaderOutput, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8UI));
 	GLCall(glBindTexture(GL_TEXTURE_2D, 0));
 
 	screenRenderShader.AddShader(GL_VERTEX_SHADER, "res/shaders/sample.vs");
@@ -86,7 +86,7 @@ ascii_render::ascii_render(GLFWwindow* window) : window(window), m_charset(m_cha
 	GLCall(glGenTextures(1, &m_intermediate2));
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_intermediate2));
 	//GLCall(glTextureStorage2D(m_intermediate, 1, GL_RGBA8, 80, 60));
-	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 80, 60, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
+	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8UI, 80, 60, 0, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, 0));
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	GLCall(glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_intermediate2, 0));
@@ -191,8 +191,8 @@ SpoutOutTex ascii_render::Draw() {
 	//return { m_intermediate2, (unsigned int)m_inputImage.image.cols, (unsigned int)m_inputImage.image.rows };
 
 	computeShader.Bind();
-	GLCall(glBindImageTexture(0, m_computeShaderOutput, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8));
-	GLCall(glBindImageTexture(1, m_intermediate2, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8));
+	GLCall(glBindImageTexture(0, m_computeShaderOutput, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8UI));
+	GLCall(glBindImageTexture(1, m_intermediate2, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8UI));
 	GLCall(glDispatchCompute(ceil(m_inputImage.cols), ceil(m_inputImage.rows), 1));
 	GLCall(glMemoryBarrier(GL_ALL_BARRIER_BITS));
 	//return { m_computeShaderOutput, (unsigned int)m_inputImage.cols, (unsigned int)m_inputImage.rows };
@@ -201,6 +201,7 @@ SpoutOutTex ascii_render::Draw() {
 	GLCall(glViewport(0, 0, m_inputImage.image.cols, m_inputImage.image.rows));
 	shader.Bind();
 	GLCall(glUniform2f(shader.GetUniform("imgDims"), m_inputImage.cols, m_inputImage.rows));
+	GLCall(glUniform1i(shader.GetUniform("numChars"), m_numChars));  
 	GLCall(glBindVertexArray(m_VAO));
 	glClear(GL_COLOR_BUFFER_BIT);
 	GLCall(glActiveTexture(GL_TEXTURE0));
@@ -257,8 +258,8 @@ void ascii_render::UpdateImage(const cv::Mat& image)
 		GLCall(glGenTextures(1, &m_computeShaderOutput));
 		GLCall(glActiveTexture(GL_TEXTURE0));
 		GLCall(glBindTexture(GL_TEXTURE_2D, m_computeShaderOutput));
-		GLCall(glTextureStorage2D(m_computeShaderOutput, 1, GL_RGBA8, m_inputImage.cols, m_inputImage.rows));
-		GLCall(glBindImageTexture(0, m_computeShaderOutput, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8));
+		GLCall(glTextureStorage2D(m_computeShaderOutput, 1, GL_RGBA8UI, m_inputImage.cols, m_inputImage.rows));
+		GLCall(glBindImageTexture(0, m_computeShaderOutput, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8UI));
 
 		GLCall(glActiveTexture(GL_TEXTURE0));
 		GLCall(glBindTexture(GL_TEXTURE_2D, m_outTex));
@@ -267,7 +268,7 @@ void ascii_render::UpdateImage(const cv::Mat& image)
 		GLCall(glBindTexture(GL_TEXTURE_2D, m_intermediate));
 		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.cols, image.rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
 		GLCall(glBindTexture(GL_TEXTURE_2D, m_intermediate2));
-		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.cols, image.rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
+		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8UI, image.cols, image.rows, 0, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, 0));
 	}
 	GLCall(glActiveTexture(GL_TEXTURE1));
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_inputTex));

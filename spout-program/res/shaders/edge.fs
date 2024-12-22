@@ -1,5 +1,5 @@
 #version 430 core
-layout(location = 0) out vec4 color;
+layout(location = 0) out uvec4 color;
 
 layout(binding=0) uniform sampler2D inputTexture;
 
@@ -18,26 +18,28 @@ vec2 sobel(in float stepx, in float stepy, in vec2 center);
 
 void main() {
 	vec2 uv = outputSize.y - gl_FragCoord.xy / outputSize;
-	vec4 sampled = texture(inputTexture, uv);
+	vec4 sampled = texelFetch(inputTexture, ivec2(gl_FragCoord.xy), 0);
     vec2 edges = sobel(step/outputSize.x, step/outputSize.y, gl_FragCoord.xy);
-    color = vec4(1.0);
+    uint brightness = uint((sampled.r * 0.2126 + sampled.g * .7152 + sampled.b * .0722) * 255);
+    
+    color = uvec4(0);
     if(edges.y >= 0.05 && edges.y <= 0.2 || edges.y >= 0.55 && edges.y <= 0.7) {
-        color = vec4(0.0, 0.0, 1.0, 1.0); //blue
+        color = uvec4(1, 0, 0, brightness); //blue
     }
     if(edges.y < 0.05 || edges.y > 0.95 || edges.y > 0.45 && edges.y < 0.55) { //vertical lines
-        color = vec4(1.0, 0.0, 0.0, 1.0); //red
+        color = uvec4(2, 0, 0, brightness); //red
     }
     else if(edges.y > 0.2 && edges.y < 0.3 || edges.y > 0.7 && edges.y < 0.8) { //horizontal lines
-        color = vec4(1.0, 1.0, 0.0, 1.0); //yellow
+        color = uvec4(3, 0, 0, brightness); //yellow
     }
     else if(edges.y >= 0.3 && edges.y <= 0.45 || edges.y >= 0.8 && edges.y <= 0.95) { // /
-        color = vec4(0.0, 1.0, 0.0, 1.0); //green
+        color = uvec4(4, 0, 0, brightness); //green
     }
     else if(edges.y >= 0.05 && edges.y <= 0.2 || edges.y >= 0.55 && edges.y <= 0.7) { // \
-        color = vec4(0.0, 0.0, 1.0, 1.0); //blue
+        color = uvec4(1, 0, 0, brightness); //blue
     }
     if(edges.x < 0.1) {
-        color = vec4(0.0);
+        color = uvec4(0, 0, 0, brightness);
     }
 }
 

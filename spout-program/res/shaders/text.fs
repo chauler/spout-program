@@ -26,7 +26,7 @@ void main()
         sampled = vec4(1.0, 1.0, 1.0, texture(edgeArray, vec3(TexCoords.xy, edgeSample.x)).r);
         color = sampledTemp * sampled;
     } else {
-        sampled = vec4(1.0, 1.0, 1.0, texture(textArray, vec3(TexCoords.xy, edgeSample.w / 8)).r);
+        sampled = vec4(1.0, 1.0, 1.0, texture(textArray, vec3(TexCoords.xy, edgeSample.w / 16)).r);
         color = sampledTemp * sampled;
     }
     //color = edgeSample * sampled;

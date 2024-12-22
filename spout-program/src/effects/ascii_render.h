@@ -73,7 +73,8 @@ private:
 	glm::vec4 m_charColor{ 1.0, 1.0, 1.0, 1.0 };
 	std::map<unsigned int, std::wstring> m_charSets{
 		{8, L" .-+o$#8"},
-		{16, L" .',:;clxokXdO0KN"},
+		//{16, L" .',:;clxokXdO0KN"},
+		{16, L" ,:;clxokXdO0KNNN"},
 		{32, L" `´¨·¸˜’:~‹°—÷¡|/+}?1u@VY©4ÐŽÂMÆ"}
 	};
 	std::wstring& m_charset;

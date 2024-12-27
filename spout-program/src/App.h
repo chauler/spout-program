@@ -21,7 +21,7 @@ private:
 	GLFWwindow* m_window = nullptr;
 	SPOUTLIBRARY* m_receiver = nullptr;
 	SPOUTLIBRARY* m_sender = nullptr;
-	Texture2D m_spoutSource{};
+	Texture2D m_spoutSource{}, test{};
 	std::shared_ptr<unsigned char[]> m_spoutSourceData{};
 	unsigned int m_imageW = 0, m_imageH = 0;
 	ImGuiIO& m_ImGuiIO;

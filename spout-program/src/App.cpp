@@ -120,12 +120,12 @@ void App::DrawGUI() {
 void App::RunLogic() {
     ZoneScoped;
     m_source->GetNextFrame(m_spoutSource.GetID(), GL_TEXTURE_2D);
-    m_spoutSourceData = m_source->GetFrameData();
-    cv::Mat mat = GetImageFromTexture(m_spoutSource.GetID());
+    //m_spoutSourceData = m_source->GetFrameData();
+    //cv::Mat mat = GetImageFromTexture(m_spoutSource.GetID());
     m_ascii.UpdateState(m_charSize,
         { m_bgColor[0], m_bgColor[1], m_bgColor[2], m_bgColor[3] },
         { m_charColor[0], m_charColor[1], m_charColor[2], m_charColor[3] }
     );
-    SpoutOutTex outputTex = m_ascii.Draw(mat);
+    SpoutOutTex outputTex = m_ascii.Draw(m_spoutSource.GetID());
     m_sender->SendTexture(outputTex.id, GL_TEXTURE_2D, outputTex.w, outputTex.h);
 }

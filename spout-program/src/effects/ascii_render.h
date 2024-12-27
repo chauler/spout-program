@@ -42,8 +42,8 @@ struct iVec2 {
 class ascii_render {
 public:
 	ascii_render();
-	SpoutOutTex Draw(const cv::Mat&);
-	void UpdateImage(const cv::Mat&);
+	SpoutOutTex Draw(unsigned int);
+	void UpdateImage(unsigned int);
 	void UpdateState(float, glm::vec4, glm::vec4);
 private:
 	void LoadCharacterData(int = 100);

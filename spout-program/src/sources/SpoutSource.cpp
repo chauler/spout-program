@@ -23,14 +23,14 @@ void SpoutSource::GetNextFrame(GLuint id, GLuint textureTarget)
         if (m_w != m_receiver->GetSenderWidth() || m_h != m_receiver->GetSenderHeight()) {
             m_w = m_receiver->GetSenderWidth();
             m_h = m_receiver->GetSenderHeight();
-            m_data = std::make_shared<unsigned char[]>(m_w * m_h * 4);
+            //m_data = std::make_shared<unsigned char[]>(m_w * m_h * 4);
         }
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_w, m_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_data.get());
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_w, m_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
         m_receiver->CopyTexture(sharedTexID, GL_TEXTURE_2D,
             id,
             GL_TEXTURE_2D,
             m_w, m_h);
-        GLCall(glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_data.get()));
+        //GLCall(glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_data.get()));
         GLCall(glBindTexture(GL_TEXTURE_2D, 0));
 
         // Un-bind to release access to the shared texture

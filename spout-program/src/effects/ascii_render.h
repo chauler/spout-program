@@ -66,7 +66,6 @@ private:
 	};
 	unsigned int indices[6] = { 0, 1, 3, 1, 2, 3 };
 	InstanceData* m_positions;
-	InstanceData* m_colors;
 	int m_numChars = 16;
 	glm::vec4 m_bgColor{1.0, 0.5, 0.5, 1.0};
 	glm::vec4 m_charColor{ 1.0, 1.0, 1.0, 1.0 };

@@ -4,7 +4,6 @@ in vec3 pixelColor;
 in vec2 outPosition;
 layout(location = 0) out vec4 color;
 
-//uniform sampler2D text;
 layout(binding=0) uniform sampler2DArray textArray;
 layout(binding=1) uniform sampler2D inputTexture;
 layout(binding=2) uniform usampler2D edgeTexture;

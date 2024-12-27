@@ -110,12 +110,6 @@ ascii_render::ascii_render(GLFWwindow* window) : window(window), m_charset(m_cha
 	GLCall(glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)0));
 	GLCall(glEnableVertexAttribArray(1));
 	GLCall(glVertexAttribDivisor(1, 1));
-	GLCall(glGenBuffers(1, &m_iVBO2));
-	GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_iVBO2));
-	GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(m_colors), m_colors, GL_DYNAMIC_DRAW));
-	GLCall(glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)0));
-	GLCall(glEnableVertexAttribArray(2));
-	GLCall(glVertexAttribDivisor(2, 1));
 	GLCall(glBindVertexArray(0));
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
@@ -127,8 +121,6 @@ SpoutOutTex ascii_render::Draw() {
 	//This buffer contains the layer each position will sample its texture from
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_iVBO));
 	GLCall(glBufferData(GL_ARRAY_BUFFER, m_inputImage.rows * m_inputImage.cols * sizeof(InstanceData), m_positions, GL_DYNAMIC_DRAW));
-	GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_iVBO2));
-	GLCall(glBufferData(GL_ARRAY_BUFFER, m_inputImage.rows * m_inputImage.cols * sizeof(InstanceData), m_colors, GL_DYNAMIC_DRAW));
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 
 	/*GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_intermediateFBO));
@@ -205,15 +197,10 @@ void ascii_render::UpdateImage(const cv::Mat& image)
 		if (m_positions != nullptr) {
 			delete(m_positions);
 		}
-		if (m_colors != nullptr) {
-			delete(m_colors);
-		}
 		m_positions = new InstanceData[m_inputImage.cols * m_inputImage.rows];
-		m_colors = new InstanceData[m_inputImage.cols * m_inputImage.rows];
 		for (int row = 0; row < m_inputImage.rows; row++) {
 			for (int col = 0; col < m_inputImage.cols; col++) {
 				m_positions[row * m_inputImage.cols + col] = { (float)col, (float)row, 31.0f };
-				m_colors[row * m_inputImage.cols + col] = { 0.5, 0.5, 0.5 };
 			}
 		}
 		GLCall(glDeleteTextures(1, &m_computeShaderOutput));

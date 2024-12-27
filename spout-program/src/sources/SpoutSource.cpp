@@ -1,6 +1,7 @@
 #include <SpoutLibrary.h>
 #include "SpoutSource.h"
 #include "Renderer.h"
+#include "tracy/public/tracy/Tracy.hpp"
 
 SpoutSource::SpoutSource(std::string name)
 {
@@ -10,6 +11,8 @@ SpoutSource::SpoutSource(std::string name)
 
 void SpoutSource::GetNextFrame(GLuint id, GLuint textureTarget)
 {
+    ZoneScoped;
+
     if (m_receiver->ReceiveTexture()) {
         // Bind to get access to the shared texture
         if (m_receiver->BindSharedTexture()) {

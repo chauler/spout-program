@@ -131,6 +131,6 @@ void App::RunLogic() {
         { m_bgColor[0], m_bgColor[1], m_bgColor[2], m_bgColor[3] },
         { m_charColor[0], m_charColor[1], m_charColor[2], m_charColor[3] }
     );
-    SpoutOutTex outputTex = m_ascii.Draw();
+    SpoutOutTex outputTex = m_ascii.Draw(mat);
     m_sender->SendTexture(outputTex.id, GL_TEXTURE_2D, outputTex.w, outputTex.h);
 }

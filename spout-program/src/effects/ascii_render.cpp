@@ -129,29 +129,27 @@ SpoutOutTex ascii_render::Draw(unsigned int imageID) {
 	GLCall(glBufferData(GL_ARRAY_BUFFER, rows / m_charSize * cols / m_charSize * sizeof(InstanceData), m_positions, GL_DYNAMIC_DRAW));
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 
-	/*GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_intermediateFBO));
-	GLCall(glViewport(0, 0, image.cols, image.rows));
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_intermediateFBO));
+	GLCall(glViewport(0, 0, cols, rows));
 	glClear(GL_COLOR_BUFFER_BIT);
-	sobelShader.Bind();
-	GLCall(glBindVertexArray(testVAO));
+	dGaussianShader.Bind();
 	GLCall(glActiveTexture(GL_TEXTURE0));
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_inputTex));
-	GLCall(glUniform2i(sobelShader.GetUniform("outputSize"), image.cols, image.rows));
-	GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
-	GLCall(glBindVertexArray(0));
-	sobelShader.Unbind();*/
-	//return { m_intermediate, (unsigned int)image.cols, (unsigned int)image.rows };
+	GLCall(glUniform2i(sobelShader.GetUniform("outputSize"), cols, rows));
+	m_fullscreenQuad.Draw();
+	dGaussianShader.Unbind();
+	//return { m_intermediate, (unsigned int)cols, (unsigned int)rows };
 
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_intermediateFBO2));
 	GLCall(glViewport(0, 0, cols, rows));
 	glClear(GL_COLOR_BUFFER_BIT);
 	sobelShader.Bind();
 	GLCall(glActiveTexture(GL_TEXTURE0));
-	GLCall(glBindTexture(GL_TEXTURE_2D, m_inputTex));
+	GLCall(glBindTexture(GL_TEXTURE_2D, m_intermediate));
 	GLCall(glUniform2i(sobelShader.GetUniform("outputSize"), cols, rows));
 	m_fullscreenQuad.Draw();
 	sobelShader.Unbind();
-	//return { m_intermediate2, (unsigned int)image.cols, (unsigned int)image.rows };
+	//return { m_intermediate2, (unsigned int)cols, (unsigned int)rows };
 
 	computeShader.Bind();
 	GLCall(glBindImageTexture(0, m_computeShaderOutput, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8UI));

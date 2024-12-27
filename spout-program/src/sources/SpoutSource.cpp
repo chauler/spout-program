@@ -1,4 +1,4 @@
-#include <SpoutLibrary.h>
+#include <SpoutLibrary/SpoutLibrary.h>
 #include "SpoutSource.h"
 #include "Renderer.h"
 #include "tracy/public/tracy/Tracy.hpp"

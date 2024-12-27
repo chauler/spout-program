@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include <SpoutLibrary.h>
+#include <SpoutLibrary/SpoutLibrary.h>
 #include "ISource.h"
 
 class SpoutSource : public ISource {

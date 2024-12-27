@@ -5,7 +5,7 @@
 #include <GLFW/glfw3.h>
 #include "App.h"
 #include "Texture2D.h"
-#include <SpoutLibrary.h>
+#include <SpoutLibrary/SpoutLibrary.h>
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include "tracy/public/tracy/Tracy.hpp"

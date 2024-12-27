@@ -36,7 +36,9 @@
 // for definitions
 #include <windows.h>
 #include <string>
+#include <vector>
 #include <dxgiformat.h> // for DXGI_FORMAT enum
+#include <d3d11.h> // For ID3D11Texture2D
 
 // Define here to avoid include of GL.h 
 typedef int GLint;
@@ -148,7 +150,6 @@ struct SPOUTLIBRARY
 	virtual void SetReceiverName(const char* SenderName = nullptr) = 0;
 	// Close receiver and release resources ready to connect to another sender
 	virtual void ReleaseReceiver() = 0;
-
 	// Receive texture
 	//   If no arguments, connect to a sender and retrieve texture details ready for access
 	//	 (see BindSharedTexture and UnBindSharedTexture)
@@ -185,10 +186,16 @@ struct SPOUTLIBRARY
 	virtual long GetSenderFrame() = 0;
 	// Received sender share handle
 	virtual HANDLE GetSenderHandle() = 0;
+	// Received sender texture
+	virtual ID3D11Texture2D* GetSenderTexture() = 0;
 	// Received sender sharing mode
 	virtual bool GetSenderCPU() = 0;
 	// Received sender GL/DX compatibility
 	virtual bool GetSenderGLDX() = 0;
+	// The path of the host that produced the sender
+	virtual bool GetHostPath(const char* sendername, char* hostpath, int maxchars) = 0;
+	// Return a list of current senders
+	virtual std::vector<std::string> GetSenderList() = 0;
 	// Open sender selection dialog
 	virtual void SelectSender() = 0;
 
@@ -212,6 +219,10 @@ struct SPOUTLIBRARY
 	virtual bool WaitFrameSync(const char *SenderName, DWORD dwTimeout = 0) = 0;
 	// Enable / disable frame sync
 	virtual void EnableFrameSync(bool bSync = true) = 0;
+	// Vertical sync status
+	virtual int GetVerticalSync() = 0;
+	// Lock to monitor vertical sync
+	virtual bool SetVerticalSync(bool bSync = true) = 0;
 
 	//
 	// Data sharing
@@ -266,19 +277,34 @@ struct SPOUTLIBRARY
 	virtual void SpoutLogError(const char* format, ...) = 0;
 	// Fatal - always show log
 	virtual void SpoutLogFatal(const char* format, ...) = 0;
+
+	//
+	// MessageBox dialog
+	//
+
 	// MessageBox dialog with optional timeout
 	//   Used where a Windows MessageBox would interfere with the application GUI
 	//   The dialog closes itself if a timeout is specified
 	virtual int SpoutMessageBox(const char * message, DWORD dwMilliseconds = 0) = 0;
+	// MessageBox dialog with variable arguments
+	virtual int SpoutMessageBox(const char* caption, const char* format, ...) = 0;
 	// MessageBox dialog with standard arguments
 	//   Replaces an existing MessageBox call
 	virtual int SpoutMessageBox(HWND hwnd, LPCSTR message, LPCSTR caption, UINT uType, DWORD dwMilliseconds = 0) = 0;
+	// MessageBox dialog with an edit control for text input
+	virtual int SpoutMessageBox(HWND hwnd, LPCSTR message, LPCSTR caption, UINT uType, std::string& text) = 0;
+	// MessageBox dialog with a combobox control for item selection
+	virtual	int SpoutMessageBox(HWND hwnd, LPCSTR message, LPCSTR caption, UINT uType, std::vector<std::string> items, int& selected) = 0;
 	// Custom icon for SpoutMessageBox from resources
 	virtual void SpoutMessageBoxIcon(HICON hIcon) = 0;
 	// Custom icon for SpoutMessageBox from file
 	virtual bool SpoutMessageBoxIcon(std::string iconfile) = 0;
 	// Custom button for SpoutMessageBox
 	virtual void SpoutMessageBoxButton(int ID, std::wstring title) = 0;
+	// Activate modeless mode using SpoutPanel.exe
+	virtual void SpoutMessageBoxModeless(bool bMode = true) = 0;
+	// Window handle for SpoutMessageBox where not specified
+	virtual void SpoutMessageBoxWindow(HWND hWnd) = 0;
 	// Copy text to the clipboard
 	virtual bool CopyToClipBoard(HWND hwnd, const char* caps) = 0;
 
@@ -303,10 +329,24 @@ struct SPOUTLIBRARY
 	virtual bool FindSubKey(HKEY hKey, const char *subkey) = 0;
 
 	//
-	// Computer information
+	// Information
 	//
+	// Get SDK version number string e.g. "2.007.000"
 	virtual std::string GetSDKversion() = 0;
+	// Computer type
 	virtual bool IsLaptop() = 0;
+	// Get the module handle of an executable or dll
+	virtual HMODULE GetCurrentModule() = 0;
+	// Get executable or dll version
+	virtual std::string GetExeVersion(const char* path) = 0;
+	// Get executable or dll path
+	virtual std::string GetExePath() = 0;
+	// Get executable or dll name
+	virtual std::string GetExeName() = 0;
+	// Remove path and return the file name
+	virtual void RemovePath(std::string& path) = 0;
+	// Remove file name and return the path
+	virtual void RemoveName(std::string& path) = 0;
 
 	//
 	// Timing utilities
@@ -392,19 +432,6 @@ struct SPOUTLIBRARY
 	virtual void SetShareMode(int mode) = 0;
 	// Open sender selection dialog
 	virtual void SelectSenderPanel() = 0;
-
-	//
-	// Information
-	//
-
-	// The path of the host that produced the sender
-	virtual bool GetHostPath(const char *sendername, char *hostpath, int maxchars) = 0;
-	// Vertical sync status
-	virtual int GetVerticalSync() = 0;
-	// Lock to monitor vertical sync
-	virtual bool SetVerticalSync(bool bSync = true) = 0;
-	// Get Spout version
-	virtual int GetSpoutVersion() = 0;
 
 	//
 	// Graphics compatibility

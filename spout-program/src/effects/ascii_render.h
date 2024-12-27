@@ -13,6 +13,7 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 #include <opencv2/core.hpp>
+#include <Quad.h>
 #include FT_FREETYPE_H
 
 struct GenericGlyphData {
@@ -44,12 +45,11 @@ public:
 	ascii_render(GLFWwindow*);
 	SpoutOutTex Draw();
 	void UpdateImage(const cv::Mat&);
-	void UpdateState(float, int, glm::vec4, glm::vec4);
+	void UpdateState(float, glm::vec4, glm::vec4);
 private:
-	void CalculateCharsFromLuminance();
 	void LoadCharacterData(int = 100);
 	Shader shader, computeShader, sobelShader, dGaussianShader, screenRenderShader;
-	unsigned int m_computeShaderOutput = 0, testVAO = 0, testVBO = 0, testEBO = 0;
+	unsigned int m_computeShaderOutput = 0;
 	FontLoader fontLoader;
 	GLFWwindow* window = nullptr;
 	int m_winW, m_winH = 0;
@@ -67,8 +67,7 @@ private:
 	unsigned int indices[6] = { 0, 1, 3, 1, 2, 3 };
 	InstanceData* m_positions;
 	InstanceData* m_colors;
-	float m_pixelSize = 10.0f;
-	int m_charRes = 100, m_numChars = 16;
+	int m_numChars = 16;
 	glm::vec4 m_bgColor{1.0, 0.5, 0.5, 1.0};
 	glm::vec4 m_charColor{ 1.0, 1.0, 1.0, 1.0 };
 	std::map<unsigned int, std::wstring> m_charSets{
@@ -78,4 +77,5 @@ private:
 		{32, L" `´¨·¸˜’:~‹°—÷¡|/+}?1u@VY©4ÐŽÂMÆ"}
 	};
 	std::wstring& m_charset;
+	Quad m_fullscreenQuad;
 };

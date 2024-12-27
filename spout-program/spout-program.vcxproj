@@ -176,6 +176,7 @@
     <ClCompile Include="src\App.cpp" />
     <ClCompile Include="src\effects\ascii_render.cpp" />
     <ClCompile Include="src\FontLoader.cpp" />
+    <ClCompile Include="src\Quad.cpp" />
     <ClCompile Include="src\sources\CamSource.cpp" />
     <ClCompile Include="src\sources\ISource.h" />
     <ClCompile Include="src\main.cpp" />
@@ -197,6 +198,7 @@
     <ClInclude Include="src\App.h" />
     <ClInclude Include="src\effects\ascii_render.h" />
     <ClInclude Include="src\FontLoader.h" />
+    <ClInclude Include="src\Quad.h" />
     <ClInclude Include="src\Renderer.h" />
     <ClInclude Include="src\Shader.h" />
     <ClInclude Include="src\sources\CamSource.h" />

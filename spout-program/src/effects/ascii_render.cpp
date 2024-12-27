@@ -7,10 +7,7 @@
 #include "imgui/imgui_impl_opengl3.h"
 #include "tracy/public/tracy/Tracy.hpp"
 
-unsigned int quadVAO = 0;
-unsigned int quadVBO;
-
-ascii_render::ascii_render(GLFWwindow* window) : window(window), m_charset(m_charSets[m_numChars]) {
+ascii_render::ascii_render(GLFWwindow* window) : window(window), m_charset(m_charSets[m_numChars]), m_fullscreenQuad(Quad()) {
 	glfwGetWindowSize(window, &m_winW, &m_winH);
 	fontLoader.LoadFace("res/fonts/Roboto-Regular.ttf");
 	m_face = fontLoader.GetFace();
@@ -122,40 +119,10 @@ ascii_render::ascii_render(GLFWwindow* window) : window(window), m_charset(m_cha
 	GLCall(glBindVertexArray(0));
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-
-	float vertices[] = {
-		// positions          // colors           // texture coords
-		 1.0f,  1.0f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
-		 1.0f, -1.0f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
-		-1.0f, -1.0f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
-		-1.0f,  1.0f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left 
-	};
-	unsigned int indices[] = {
-		0, 1, 3, // first triangle
-		1, 2, 3  // second triangle
-	};
-	glGenBuffers(1, &testEBO);
-	glGenBuffers(1, &testVBO);
-	glEnableVertexAttribArray(0);
-	GLCall(glGenVertexArrays(1, &testVAO));
-	GLCall(glBindVertexArray(testVAO));
-	glBindBuffer(GL_ARRAY_BUFFER, testVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, testEBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-	glEnableVertexAttribArray(2);
-	glBindVertexArray(0);
 }
 
 SpoutOutTex ascii_render::Draw() {
 	ZoneScoped;
-	//Process image. Textures in same order as m_charset, so index == layer to sample from
-	//CalculateCharsFromLuminance();
 
 	//This buffer contains the layer each position will sample its texture from
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_iVBO));
@@ -181,12 +148,10 @@ SpoutOutTex ascii_render::Draw() {
 	GLCall(glViewport(0, 0, m_inputImage.image.cols, m_inputImage.image.rows));
 	glClear(GL_COLOR_BUFFER_BIT);
 	sobelShader.Bind();
-	GLCall(glBindVertexArray(testVAO));
 	GLCall(glActiveTexture(GL_TEXTURE0));
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_inputTex));
 	GLCall(glUniform2i(sobelShader.GetUniform("outputSize"), m_inputImage.image.cols, m_inputImage.image.rows));
-	GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
-	GLCall(glBindVertexArray(0));
+	m_fullscreenQuad.Draw();
 	sobelShader.Unbind();
 	//return { m_intermediate2, (unsigned int)m_inputImage.image.cols, (unsigned int)m_inputImage.image.rows };
 
@@ -222,13 +187,10 @@ SpoutOutTex ascii_render::Draw() {
 
 	/*glClear(GL_COLOR_BUFFER_BIT);
 	screenRenderShader.Bind();
-	GLCall(glBindVertexArray(testVAO));
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_outTex));
-	GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
-	GLCall(glBindVertexArray(0));
+	m_fullscreenQuad.Draw();
 	screenRenderShader.Unbind();*/
 
-	//return { m_computeShaderOutput, (unsigned int)m_inputImage.cols, (unsigned int)m_inputImage.rows };
 	return { m_outTex, (unsigned int)m_inputImage.image.cols, (unsigned int)m_inputImage.image.rows };
 }
 
@@ -277,12 +239,8 @@ void ascii_render::UpdateImage(const cv::Mat& image)
 	m_inputImage.image = image;
 }
 
-void ascii_render::UpdateState(float charSize, int charRes, glm::vec4 bgColor, glm::vec4 charColor) {
+void ascii_render::UpdateState(float charSize, glm::vec4 bgColor, glm::vec4 charColor) {
 	ZoneScoped;
-	if (charRes != m_charRes) {
-		m_charRes = charRes;
-		//LoadCharacterData(m_charRes);
-	}
 
 	if (bgColor != m_bgColor) {
 		m_bgColor = bgColor;
@@ -296,35 +254,6 @@ void ascii_render::UpdateState(float charSize, int charRes, glm::vec4 bgColor, g
 		shader.Bind();
 		GLCall(glUniform4f(shader.GetUniform("charColor"), m_charColor[0], m_charColor[1], m_charColor[2], m_charColor[3]));
 		shader.Unbind();
-	}
-}
-
-void ascii_render::CalculateCharsFromLuminance() {
-	ZoneScoped;
-	unsigned char* pixelPtr = m_inputImage.image.data;
-	int channels = m_inputImage.image.channels();
-	if ((m_inputImage.image.type() & CV_MAT_DEPTH_MASK) != CV_8U || channels != 1 && channels != 4) {
-		std::cout << "Unsupported Image type" << std::endl;
-	}
-
-	//Grayscale image
-	if (channels == 1) {
-		m_inputImage.image.forEach<unsigned char>([&](unsigned char& pixel, const int* pos) {
-			//pos layout: [y, x]
-			unsigned int index = pixel / ceil((float)255 / m_charset.length());
-			m_positions[pos[0] * m_inputImage.image.cols + pos[1]].texArrayIndex = index;
-			});
-	}
-	else { //RGB
-		m_inputImage.image.forEach<cv::Vec4b>([&](cv::Vec4b& pixel, const int* pos) {
-			//pos layout: [y, x]
-			const int x = pos[1];
-			const int y = pos[0];
-			const int col = x / m_inputImage.image.cols * m_inputImage.cols;
-			const int row = y / m_inputImage.image.rows * m_inputImage.rows;
-			m_colors[row * m_inputImage.cols + col] = { (float)pixel[0] / 255, (float)pixel[1] / 255, (float)pixel[2] / 255};
-			m_positions[row * m_inputImage.cols + col].texArrayIndex = (((float)pixel[0] + (float)pixel[1] + (float)pixel[2]) / 3) / ceil((float)255 / m_charset.length());
-			});
 	}
 }
 

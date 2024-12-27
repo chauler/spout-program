@@ -98,7 +98,6 @@ void App::DrawGUI() {
         m_source = std::make_unique<CamSource>();
     }
     ImGui::SliderFloat("Char Size", &m_charSize, 1.0f, 100.0f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
-    ImGui::SliderInt("Char Resolution", &m_charRes, 1, 100, "%d", ImGuiSliderFlags_AlwaysClamp);
     ImGui::SliderInt("Width", &m_cols, 0, 1000, "%d", ImGuiSliderFlags_AlwaysClamp);
     ImGui::SliderInt("Height", &m_rows, 0, 1000, "%d", ImGuiSliderFlags_AlwaysClamp);
     ImGui::ColorPicker4("Background Color", m_bgColor, ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_Float);
@@ -129,7 +128,6 @@ void App::RunLogic() {
     cv::Mat mat = GetImageFromTexture(m_spoutSource.GetID());
     m_ascii.UpdateImage(mat);
     m_ascii.UpdateState(m_charSize,
-        m_charRes,
         { m_bgColor[0], m_bgColor[1], m_bgColor[2], m_bgColor[3] },
         { m_charColor[0], m_charColor[1], m_charColor[2], m_charColor[3] }
     );

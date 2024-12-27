@@ -6,7 +6,7 @@
 SpoutSource::SpoutSource(std::string name)
 {
     m_receiver = GetSpout();
-    m_receiver->SetReceiverName("VTubeStudioSpout");
+    m_receiver->SetReceiverName(name.c_str());
 }
 
 void SpoutSource::GetNextFrame(GLuint id, GLuint textureTarget)
@@ -35,6 +35,7 @@ void SpoutSource::GetNextFrame(GLuint id, GLuint textureTarget)
 
         // Un-bind to release access to the shared texture
         m_receiver->UnBindSharedTexture();
+        return;
     }
 }
 

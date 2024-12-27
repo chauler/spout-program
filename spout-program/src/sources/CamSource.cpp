@@ -43,6 +43,7 @@ void CamSource::GetNextFrame(GLuint id, GLuint textureTarget)
 	GLCall(glBindTexture(GL_TEXTURE_2D, id));
 	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_w, m_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, frame.data));
 	GLCall(glBindTexture(GL_TEXTURE_2D, 0));
+	return;
 }
 
 std::shared_ptr<unsigned char[]> CamSource::GetFrameData()

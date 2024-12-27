@@ -57,7 +57,6 @@ void IconifyCallback(GLFWwindow* window, int iconified) {
 App::App(GLFWwindow* window): m_window(window), m_ImGuiIO(ImGui::GetIO()), m_ascii() {
     glfwSetWindowIconifyCallback(window, IconifyCallback);
     m_source = std::make_unique<SpoutSource>("VTubeStudioSpout");
-    //m_source = std::make_unique<CamSource>();
     m_sender = GetSpout();
     m_sender->SetSenderName("SpoutProgram");
     m_spoutSource.Allocate(GL_RGBA, 1920, 1017, GL_RGBA, GL_UNSIGNED_BYTE, std::make_unique<unsigned char[]>(1920 * 1017 * 4).get());
@@ -103,11 +102,10 @@ void App::DrawGUI() {
     ImGui::End();
 
     ImGui::SetNextWindowPos(ImVec2(window_w / 5, 0));
-    ImGui::SetNextWindowSize(ImVec2(window_w / 10, window_h / 10), ImGuiCond_Once);
+    ImGui::SetNextWindowSize(ImVec2(m_source->GetWidth(), m_source->GetHeight()));
     ImGui::Begin("Spout Feed", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_HorizontalScrollbar);
+    ImGui::Text("size = %d x %d \t | \t %.3f ms/frame (%.1f FPS)", m_source->GetWidth(), m_source->GetHeight(), 1000.0f / m_ImGuiIO.Framerate, m_ImGuiIO.Framerate);
     ImGui::Image((void*)(intptr_t)m_spoutSource.GetID(), ImVec2(m_source->GetWidth(), m_source->GetHeight()));
-    ImGui::Text("size = %d x %d", m_source->GetWidth(), m_source->GetHeight());
-    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / m_ImGuiIO.Framerate, m_ImGuiIO.Framerate);
     ImGui::End();
     ImGui::Render();
     int display_w, display_h;

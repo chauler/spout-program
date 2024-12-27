@@ -3,6 +3,8 @@
 ##
 ## Get latest from httpsgithub.comgithubgitignoreblobmainVisualStudio.gitignore
 
+imgui.ini
+
 # User-specific files
 .rsuser
 .suo

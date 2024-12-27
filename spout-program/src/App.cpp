@@ -13,8 +13,6 @@
 #include "sources/SpoutSource.h"
 #include "sources/CamSource.h"
 
-int App::m_iconified = 0;
-
 //Converts OpenGL texture to OpenCV mat for easier processing. Resize mat to provided dimensions.
 //Argument of 0 for one of the dimensions means we scale it to match other dimension with same aspect ratio as texture.
 //Argument of 0 for both dimensions means we do not resize the mat.

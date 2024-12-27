@@ -28,7 +28,7 @@ private:
     ascii_render m_ascii;
 	std::unique_ptr<ISource> m_source;
 	SourceType sourceType = SourceType::SpoutSource;
-	static int m_iconified;
+	inline static int m_iconified = 0;
 
 
 	//App State editable in the GUI

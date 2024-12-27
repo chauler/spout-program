@@ -13,7 +13,7 @@ void SpoutSource::GetNextFrame(GLuint id, GLuint textureTarget)
 {
     ZoneScoped;
 
-    if (m_receiver->ReceiveTexture() && m_receiver->BindSharedTexture() /*&& m_receiver->IsFrameNew()*/) {
+    if (m_receiver->ReceiveTexture() && m_receiver->IsFrameNew()) {
         // Bind to get access to the shared texture
         // Get the shared texture ID and do something with it
         GLuint sharedTexID = m_receiver->GetSharedTextureID();
@@ -23,9 +23,9 @@ void SpoutSource::GetNextFrame(GLuint id, GLuint textureTarget)
         if (m_w != m_receiver->GetSenderWidth() || m_h != m_receiver->GetSenderHeight()) {
             m_w = m_receiver->GetSenderWidth();
             m_h = m_receiver->GetSenderHeight();
-            //m_data = std::make_shared<unsigned char[]>(m_w * m_h * 4);
+            GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_w, m_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
         }
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_w, m_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+        m_receiver->BindSharedTexture();
         m_receiver->CopyTexture(sharedTexID, GL_TEXTURE_2D,
             id,
             GL_TEXTURE_2D,

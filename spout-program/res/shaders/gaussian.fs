@@ -4,7 +4,7 @@ out vec4 FragColor;
 uniform sampler2D inputTex;
 
 const int samples = 35;
-const int sLOD = 1;
+const int sLOD = 8;
 const float sigma = float(samples) * .25;
 // used in grayScale
 const highp vec3 W = vec3(0.2125, 0.7154, 0.0721);
@@ -25,11 +25,11 @@ vec4 blur(vec2 U, vec2 scale) {
 }
 
 // XDoG parameters
-const float Epsilon = 0.01;
-const float Phi = 200.0;
-const float Sigma = 0.2;
-const float k = 1.5;
-const float p = 0.97;
+uniform float Epsilon = 0.018; //White Threshold
+uniform float Phi = 200.0; //How white the white is
+uniform float Sigma = 0.15; //blurriness
+uniform float k = 2.1; //Thickness of lines, higher = thicker
+uniform float p = 0.98; //Increases = more/bigger edges
 
 void main() {
     // Normalized pixel coordinates (from 0 to 1)

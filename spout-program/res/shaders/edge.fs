@@ -2,6 +2,8 @@
 layout(location = 0) out uvec4 color;
 
 layout(binding=0) uniform sampler2D inputTexture;
+layout(binding=1) uniform sampler2D origTexture;
+
 
 uniform ivec2 outputSize;
 uniform mat3 G[2] = mat3[](
@@ -19,8 +21,9 @@ vec2 sobel(in float stepx, in float stepy, in vec2 center);
 void main() {
 	vec2 uv = outputSize.y - gl_FragCoord.xy / outputSize;
 	vec4 sampled = texelFetch(inputTexture, ivec2(gl_FragCoord.xy), 0);
+    vec4 colorSample = texelFetch(origTexture, ivec2(gl_FragCoord.xy), 0);
     vec2 edges = sobel(step/outputSize.x, step/outputSize.y, gl_FragCoord.xy);
-    uint brightness = uint((sampled.r * 0.2126 + sampled.g * .7152 + sampled.b * .0722) * 255);
+    uint brightness = uint((colorSample.r * 0.2126 + colorSample.g * .7152 + colorSample.b * .0722) * 255);
     
     color = uvec4(0);
     if(edges.y >= 0.05 && edges.y <= 0.2 || edges.y >= 0.55 && edges.y <= 0.7) {

@@ -116,13 +116,19 @@ ascii_render::ascii_render() : m_charset(m_charSets[m_numChars]), m_fullscreenQu
 SpoutOutTex ascii_render::Draw(unsigned int imageID) {
 	ZoneScoped;
 
-	UpdateImage(imageID);
 	m_inputTex = imageID;
 	unsigned int cols, rows;
 	GLCall(glBindTexture(GL_TEXTURE_2D, imageID));
 	GLCall(glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, (GLint*)&cols));
 	GLCall(glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, (GLint*)&rows));
 	GLCall(glBindTexture(GL_TEXTURE_2D, 0));
+
+	//If incoming texture is invalid, don't update anything and just return the previous result
+	if (cols == 0 || rows == 0) {
+		return { m_outTex, (unsigned int)cols, (unsigned int)rows };
+	}
+
+	UpdateImage(imageID);
 
 	//This buffer contains the layer each position will sample its texture from
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_iVBO));
@@ -146,6 +152,8 @@ SpoutOutTex ascii_render::Draw(unsigned int imageID) {
 	sobelShader.Bind();
 	GLCall(glActiveTexture(GL_TEXTURE0));
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_intermediate));
+	GLCall(glActiveTexture(GL_TEXTURE1));
+	GLCall(glBindTexture(GL_TEXTURE_2D, m_inputTex));
 	GLCall(glUniform2i(sobelShader.GetUniform("outputSize"), cols, rows));
 	m_fullscreenQuad.Draw();
 	sobelShader.Unbind();
@@ -238,7 +246,7 @@ void ascii_render::UpdateImage(unsigned int imageID)
 	GLCall(glActiveTexture(GL_TEXTURE0));
 }
 
-void ascii_render::UpdateState(float charSize, glm::vec4 bgColor, glm::vec4 charColor) {
+void ascii_render::UpdateState(float charSize, glm::vec4 bgColor, glm::vec4 charColor, float Epsilon, float Phi, float Sigma, float k, float p) {
 	ZoneScoped;
 
 	if (bgColor != m_bgColor) {
@@ -254,6 +262,11 @@ void ascii_render::UpdateState(float charSize, glm::vec4 bgColor, glm::vec4 char
 		GLCall(glUniform4f(shader.GetUniform("charColor"), m_charColor[0], m_charColor[1], m_charColor[2], m_charColor[3]));
 		shader.Unbind();
 	}
+	GLCall(glProgramUniform1f(dGaussianShader.GetProgram(), dGaussianShader.GetUniform("Epsilon"), Epsilon));
+	GLCall(glProgramUniform1f(dGaussianShader.GetProgram(), dGaussianShader.GetUniform("Phi"), Phi));
+	GLCall(glProgramUniform1f(dGaussianShader.GetProgram(), dGaussianShader.GetUniform("Sigma"), Sigma));
+	GLCall(glProgramUniform1f(dGaussianShader.GetProgram(), dGaussianShader.GetUniform("k"), k));
+	GLCall(glProgramUniform1f(dGaussianShader.GetProgram(), dGaussianShader.GetUniform("p"), p));
 }
 
 void ascii_render::LoadCharacterData(int textSize)

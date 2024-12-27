@@ -44,7 +44,7 @@ public:
 	ascii_render();
 	SpoutOutTex Draw(unsigned int);
 	void UpdateImage(unsigned int);
-	void UpdateState(float, glm::vec4, glm::vec4);
+	void UpdateState(float, glm::vec4, glm::vec4, float, float, float, float, float);
 private:
 	void LoadCharacterData(int = 100);
 	Shader shader, computeShader, sobelShader, dGaussianShader, screenRenderShader;

@@ -79,8 +79,6 @@ void App::DrawGUI() {
     glfwGetWindowSize(m_window, &window_w, &window_h);
     ImGui::SetNextWindowPos(ImVec2());
     ImGui::SetNextWindowSize(ImVec2(window_w / 5, window_h));
-    
-    ImGui::ShowDemoWindow();
 
     ImGui::Begin("Options", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
     //Selectable returns true if clicked that frame. Filter for only when *changing* selection
@@ -99,6 +97,11 @@ void App::DrawGUI() {
     ImGui::SliderInt("Height", &m_rows, 0, 1000, "%d", ImGuiSliderFlags_AlwaysClamp);
     ImGui::ColorPicker4("Background Color", m_bgColor, ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_Float);
     ImGui::ColorPicker4("Character Color", m_charColor, ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_Float);
+    ImGui::SliderFloat("Epsilon", &Epsilon, 0.0f, 0.5f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
+    ImGui::SliderFloat("Phi", &Phi, 100.0f, 500.0f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
+    ImGui::SliderFloat("Sigma", &Sigma, 0.0f, 1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
+    ImGui::SliderFloat("k", &k, 0.0f, 3.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+    ImGui::SliderFloat("p", &p, 0.0f, 1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
     ImGui::End();
 
     ImGui::SetNextWindowPos(ImVec2(window_w / 5, 0));
@@ -124,7 +127,8 @@ void App::RunLogic() {
     //cv::Mat mat = GetImageFromTexture(m_spoutSource.GetID());
     m_ascii.UpdateState(m_charSize,
         { m_bgColor[0], m_bgColor[1], m_bgColor[2], m_bgColor[3] },
-        { m_charColor[0], m_charColor[1], m_charColor[2], m_charColor[3] }
+        { m_charColor[0], m_charColor[1], m_charColor[2], m_charColor[3] },
+        Epsilon, Phi, Sigma, k, p
     );
     SpoutOutTex outputTex = m_ascii.Draw(m_spoutSource.GetID());
     m_sender->SendTexture(outputTex.id, GL_TEXTURE_2D, outputTex.w, outputTex.h);

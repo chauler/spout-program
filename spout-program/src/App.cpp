@@ -56,7 +56,7 @@ void IconifyCallback(GLFWwindow* window, int iconified) {
     App::SetIconified(iconified);
 }
 
-App::App(GLFWwindow* window): m_window(window), m_ImGuiIO(ImGui::GetIO()), m_ascii(m_window) {
+App::App(GLFWwindow* window): m_window(window), m_ImGuiIO(ImGui::GetIO()), m_ascii() {
     glfwSetWindowIconifyCallback(window, IconifyCallback);
     m_source = std::make_unique<SpoutSource>("VTubeStudioSpout");
     //m_source = std::make_unique<CamSource>();
@@ -126,7 +126,6 @@ void App::RunLogic() {
     m_source->GetNextFrame(m_spoutSource.GetID(), GL_TEXTURE_2D);
     m_spoutSourceData = m_source->GetFrameData();
     cv::Mat mat = GetImageFromTexture(m_spoutSource.GetID());
-    m_ascii.UpdateImage(mat);
     m_ascii.UpdateState(m_charSize,
         { m_bgColor[0], m_bgColor[1], m_bgColor[2], m_bgColor[3] },
         { m_charColor[0], m_charColor[1], m_charColor[2], m_charColor[3] }

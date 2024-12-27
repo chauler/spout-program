@@ -4,6 +4,7 @@
 #include <iostream>
 #include "opencv2/core/opengl.hpp"
 #include <opencv2/imgproc.hpp>
+#include "tracy/public/tracy/Tracy.hpp"
 
 CamSource::CamSource(): m_cap(0)
 {
@@ -26,6 +27,7 @@ CamSource::~CamSource() {
 
 void CamSource::GetNextFrame(GLuint id, GLuint textureTarget)
 {
+	ZoneScoped;
 	cv::Mat frame;
 	m_cap.read(frame);
 	if (frame.empty()) {

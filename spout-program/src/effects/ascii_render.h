@@ -34,16 +34,15 @@ struct SpoutOutTex {
 	unsigned int h;
 };
 
-struct InputImage {
-	cv::Mat image;
-	unsigned int cols;
-	unsigned int rows;
+struct iVec2 {
+	int x;
+	int y;
 };
 
 class ascii_render {
 public:
-	ascii_render(GLFWwindow*);
-	SpoutOutTex Draw();
+	ascii_render();
+	SpoutOutTex Draw(const cv::Mat&);
 	void UpdateImage(const cv::Mat&);
 	void UpdateState(float, glm::vec4, glm::vec4);
 private:
@@ -51,9 +50,7 @@ private:
 	Shader shader, computeShader, sobelShader, dGaussianShader, screenRenderShader;
 	unsigned int m_computeShaderOutput = 0;
 	FontLoader fontLoader;
-	GLFWwindow* window = nullptr;
-	int m_winW, m_winH = 0;
-	InputImage m_inputImage;
+	iVec2 m_prevDimensions;
 	FT_Face m_face;
 	unsigned int m_VBO = 0, m_VAO = 0, m_EBO = 0, m_iVBO = 0, m_iVBO2 = 0, m_edgeArray = 0,
 		m_FBO = 0, m_outTex = 0, m_textArray = 0, m_inputTex = 0, m_intermediate = 0, m_intermediateFBO = 0, m_intermediate2 = 0, m_intermediateFBO2 = 0;

@@ -39,8 +39,8 @@ private:
 	float Epsilon = 0.015;
 	float Phi = 200.0;
 	float Sigma = 0.156;
-	float k = 1.40;
-	float p = 0.98;
+	float k = 2.26;
+	float p = 1.00;
 };
 
 //cv::Mat GetImageFromTexture(const GLuint, const unsigned int, const unsigned int);

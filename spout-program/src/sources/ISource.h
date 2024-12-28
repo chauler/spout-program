@@ -1,15 +1,17 @@
 #pragma once
 #include <memory>
+#include <vector>
+#include <string>
 #include <GL/glew.h>
 
 class ISource {
 public:
 	virtual void GetNextFrame(GLuint id, GLuint textureTarget) = 0;
-	virtual std::shared_ptr<unsigned char[]> GetFrameData() = 0;
 	virtual ~ISource() { }
 	unsigned int GetWidth() { return m_w; }
 	unsigned int GetHeight() { return m_h; }
+	virtual void SetTargetName(std::string) = 0;
+	virtual std::vector<std::string> EnumerateTargets() = 0;
 protected:
-	std::shared_ptr<unsigned char[]> m_data{};
 	unsigned int m_w = 0, m_h = 0;
 };

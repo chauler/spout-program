@@ -1,3 +1,4 @@
+#include "string.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
@@ -56,7 +57,7 @@ void IconifyCallback(GLFWwindow* window, int iconified) {
 
 App::App(GLFWwindow* window): m_window(window), m_ImGuiIO(ImGui::GetIO()), m_ascii() {
     glfwSetWindowIconifyCallback(window, IconifyCallback);
-    m_source = std::make_unique<SpoutSource>("VTubeStudioSpout");
+    m_source = nullptr;
     m_sender = GetSpout();
     m_sender->SetSenderName("SpoutProgram");
     m_spoutSource.Allocate(GL_RGBA, 1920, 1017, GL_RGBA, GL_UNSIGNED_BYTE, std::make_unique<unsigned char[]>(1920 * 1017 * 4).get());
@@ -75,26 +76,58 @@ void App::DrawGUI() {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
+    ImGui::ShowDemoWindow();
+
     int window_w, window_h;
     glfwGetWindowSize(m_window, &window_w, &window_h);
     ImGui::SetNextWindowPos(ImVec2());
     ImGui::SetNextWindowSize(ImVec2(window_w / 5, window_h));
-
+    
     ImGui::Begin("Options", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+    
     //Selectable returns true if clicked that frame. Filter for only when *changing* selection
     if (ImGui::Selectable("Spout", sourceType == SourceType::SpoutSource) && sourceType != SourceType::SpoutSource) {
         sourceType = SourceType::SpoutSource;
-        //m_source.reset();
-        m_source = std::make_unique<SpoutSource>("VTubeStudioSpout");
+        m_source = std::make_unique<SpoutSource>(currentSourceName);
     }
+
+    if (sourceType == SourceType::SpoutSource) {
+        //Do these every frame that spout is selected
+
+        //Draw list and update receiver if choice is selected
+        if (ImGui::BeginCombo("Spout Sources", currentSourceName.c_str())) {
+            std::vector<std::string> spoutSourceList = m_source->EnumerateTargets();
+
+            for (const std::string & sourceName : spoutSourceList) {
+                if (sourceName == m_sender->GetName()) {
+                    continue;
+                }
+                //Option was just selected - update receiver
+                if (ImGui::Selectable(sourceName.c_str(), sourceName == currentSourceName)) {
+                    //Execute once on click
+                    if (sourceName != currentSourceName) {
+                        m_source->SetTargetName(sourceName.c_str());
+                    }
+                    currentSourceName = sourceName;
+                }
+
+                if (sourceName == currentSourceName) {
+                    ImGui::SetItemDefaultFocus();
+                }
+            }
+
+            ImGui::EndCombo();
+        }
+    }
+
+    ImGui::Dummy(ImVec2(0.0f, 10.0f));
+
     if (ImGui::Selectable("Cam", sourceType == SourceType::CamSource) && sourceType != SourceType::CamSource) {
         sourceType = SourceType::CamSource;
-        //m_source.reset();
         m_source = std::make_unique<CamSource>();
     }
+
     ImGui::SliderFloat("Char Size", &m_charSize, 1.0f, 100.0f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
-    ImGui::SliderInt("Width", &m_cols, 0, 1000, "%d", ImGuiSliderFlags_AlwaysClamp);
-    ImGui::SliderInt("Height", &m_rows, 0, 1000, "%d", ImGuiSliderFlags_AlwaysClamp);
     ImGui::ColorPicker4("Background Color", m_bgColor, ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_Float);
     ImGui::ColorPicker4("Character Color", m_charColor, ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_Float);
     ImGui::SliderFloat("Epsilon", &Epsilon, 0.0f, 0.5f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
@@ -104,12 +137,15 @@ void App::DrawGUI() {
     ImGui::SliderFloat("p", &p, 0.0f, 1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
     ImGui::End();
 
-    ImGui::SetNextWindowPos(ImVec2(window_w / 5, 0));
-    ImGui::SetNextWindowSize(ImVec2(m_source->GetWidth(), m_source->GetHeight()));
-    ImGui::Begin("Spout Feed", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_HorizontalScrollbar);
-    ImGui::Text("size = %d x %d \t | \t %.3f ms/frame (%.1f FPS)", m_source->GetWidth(), m_source->GetHeight(), 1000.0f / m_ImGuiIO.Framerate, m_ImGuiIO.Framerate);
-    ImGui::Image((void*)(intptr_t)m_spoutSource.GetID(), ImVec2(m_source->GetWidth(), m_source->GetHeight()));
-    ImGui::End();
+    if (m_source) {
+        ImGui::SetNextWindowPos(ImVec2(window_w / 5, 0));
+        ImGui::SetNextWindowSize(ImVec2(m_source->GetWidth(), m_source->GetHeight()));
+        ImGui::Begin("Spout Feed", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_HorizontalScrollbar);
+        ImGui::Text("size = %d x %d \t | \t %.3f ms/frame (%.1f FPS)", m_source->GetWidth(), m_source->GetHeight(), 1000.0f / m_ImGuiIO.Framerate, m_ImGuiIO.Framerate);
+        ImGui::Image((void*)(intptr_t)m_spoutSource.GetID(), ImVec2(m_source->GetWidth(), m_source->GetHeight()));
+        ImGui::End();
+    }
+
     ImGui::Render();
     int display_w, display_h;
     glfwGetFramebufferSize(m_window, &display_w, &display_h);
@@ -122,9 +158,10 @@ void App::DrawGUI() {
 
 void App::RunLogic() {
     ZoneScoped;
+    if (!m_source) {
+        return;
+    }
     m_source->GetNextFrame(m_spoutSource.GetID(), GL_TEXTURE_2D);
-    //m_spoutSourceData = m_source->GetFrameData();
-    //cv::Mat mat = GetImageFromTexture(m_spoutSource.GetID());
     m_ascii.UpdateState(m_charSize,
         { m_bgColor[0], m_bgColor[1], m_bgColor[2], m_bgColor[3] },
         { m_charColor[0], m_charColor[1], m_charColor[2], m_charColor[3] },

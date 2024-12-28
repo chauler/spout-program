@@ -140,7 +140,7 @@ SpoutOutTex ascii_render::Draw(unsigned int imageID) {
 	glClear(GL_COLOR_BUFFER_BIT);
 	dGaussianShader.Bind();
 	GLCall(glActiveTexture(GL_TEXTURE0));
-	GLCall(glBindTexture(GL_TEXTURE_2D, m_inputTex));
+	GLCall(glBindTexture(GL_TEXTURE_2D, imageID));
 	GLCall(glUniform2i(sobelShader.GetUniform("outputSize"), cols, rows));
 	m_fullscreenQuad.Draw();
 	dGaussianShader.Unbind();
@@ -153,7 +153,7 @@ SpoutOutTex ascii_render::Draw(unsigned int imageID) {
 	GLCall(glActiveTexture(GL_TEXTURE0));
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_intermediate));
 	GLCall(glActiveTexture(GL_TEXTURE1));
-	GLCall(glBindTexture(GL_TEXTURE_2D, m_inputTex));
+	GLCall(glBindTexture(GL_TEXTURE_2D, imageID));
 	GLCall(glUniform2i(sobelShader.GetUniform("outputSize"), cols, rows));
 	m_fullscreenQuad.Draw();
 	sobelShader.Unbind();
@@ -175,7 +175,7 @@ SpoutOutTex ascii_render::Draw(unsigned int imageID) {
 	GLCall(glActiveTexture(GL_TEXTURE0));
 	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, m_textArray));
 	GLCall(glActiveTexture(GL_TEXTURE1));
-	GLCall(glBindTexture(GL_TEXTURE_2D, m_inputTex));
+	GLCall(glBindTexture(GL_TEXTURE_2D, imageID));
 	GLCall(glActiveTexture(GL_TEXTURE2));
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_computeShaderOutput));
 	GLCall(glActiveTexture(GL_TEXTURE3));
@@ -187,12 +187,6 @@ SpoutOutTex ascii_render::Draw(unsigned int imageID) {
 	GLCall(glActiveTexture(GL_TEXTURE0));
 	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-
-	/*glClear(GL_COLOR_BUFFER_BIT);
-	screenRenderShader.Bind();
-	GLCall(glBindTexture(GL_TEXTURE_2D, m_outTex));
-	m_fullscreenQuad.Draw();
-	screenRenderShader.Unbind();*/
 
 	return { m_outTex, (unsigned int)cols, (unsigned int)rows };
 }
@@ -239,9 +233,6 @@ void ascii_render::UpdateImage(unsigned int imageID)
 		GLCall(glBindTexture(GL_TEXTURE_2D, m_intermediate2));
 		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8UI, cols, rows, 0, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, 0));
 	}
-	//GLCall(glActiveTexture(GL_TEXTURE1));
-	//GLCall(glBindTexture(GL_TEXTURE_2D, m_inputTex));
-	//GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.data));
 	GLCall(glBindTexture(GL_TEXTURE_2D, 0));
 	GLCall(glActiveTexture(GL_TEXTURE0));
 }
@@ -279,13 +270,13 @@ void ascii_render::LoadCharacterData(int textSize)
 	}
 	GLCall(glActiveTexture(GL_TEXTURE0));
 	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, m_edgeArray));
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, m_textArray));
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	unsigned char* buffer = new unsigned char[textSize * textSize * m_charset.length()]{};

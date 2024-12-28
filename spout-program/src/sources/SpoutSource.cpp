@@ -3,14 +3,17 @@
 #include "Renderer.h"
 #include "tracy/public/tracy/Tracy.hpp"
 
-SpoutSource::SpoutSource(std::string name)
-{
+SpoutSource::SpoutSource(std::string name) {
     m_receiver = GetSpout();
-    m_receiver->SetReceiverName(name.c_str());
+    if (name != "") {
+        m_receiver->SetReceiverName(name.c_str());
+    }
+    else {
+        m_receiver->SetReceiverName("_");
+    }
 }
 
-void SpoutSource::GetNextFrame(GLuint id, GLuint textureTarget)
-{
+void SpoutSource::GetNextFrame(GLuint id, GLuint textureTarget) {
     ZoneScoped;
 
     if (m_receiver->ReceiveTexture() && m_receiver->IsFrameNew()) {
@@ -39,7 +42,16 @@ void SpoutSource::GetNextFrame(GLuint id, GLuint textureTarget)
     }
 }
 
-std::shared_ptr<unsigned char[]> SpoutSource::GetFrameData()
-{
-	return m_data;
+void SpoutSource::SetTargetName(std::string name) {
+    m_receiver->SetReceiverName(name.c_str());
+}
+
+std::vector<std::string> SpoutSource::EnumerateTargets() {
+    std::vector<std::string> targets{};
+    for (int i = 0; i < m_receiver->GetSenderCount(); i++) {
+        char name[256] = {};
+        m_receiver->GetSender(i, name);
+        targets.push_back(name);
+    }
+    return targets;
 }

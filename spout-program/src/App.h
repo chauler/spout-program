@@ -9,7 +9,7 @@
 #include "sources/ISource.h"
 #include <memory>
 
-enum class SourceType: unsigned int { SpoutSource, CamSource };
+enum class SourceType: unsigned int { SpoutSource, CamSource, None };
 
 class App {
 public:
@@ -27,9 +27,12 @@ private:
 	ImGuiIO& m_ImGuiIO;
     ascii_render m_ascii;
 	std::unique_ptr<ISource> m_source;
-	SourceType sourceType = SourceType::SpoutSource;
+	SourceType sourceType = SourceType::None;
 	inline static int m_iconified = 0;
 
+	//GUI State
+	unsigned int spoutSourceID = 0;
+	std::string currentSourceName{};
 
 	//App State editable in the GUI
 	float m_charSize = 10.0f;

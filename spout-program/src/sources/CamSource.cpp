@@ -19,7 +19,6 @@ CamSource::CamSource(): m_cap(0)
 }
 
 CamSource::~CamSource() {
-	std::cout << "released" << std::endl;
 	if (m_cap.isOpened()) {
 		m_cap.release();
 	}
@@ -37,17 +36,16 @@ void CamSource::GetNextFrame(GLuint id, GLuint textureTarget)
 	cv::cvtColor(frame, frame, cv::COLOR_BGR2RGBA);
 	m_w = frame.cols;
 	m_h = frame.rows;
-	size_t sizeInBytes = frame.step[0] * frame.rows;
-	m_data = std::make_shared<unsigned char[]>(sizeInBytes);
-	std::memcpy(m_data.get(), frame.data, sizeInBytes);
 	GLCall(glBindTexture(GL_TEXTURE_2D, id));
 	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_w, m_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, frame.data));
 	GLCall(glBindTexture(GL_TEXTURE_2D, 0));
 	return;
 }
 
-std::shared_ptr<unsigned char[]> CamSource::GetFrameData()
-{
-	return m_data;
+void CamSource::SetTargetName(std::string name) {
+	return;
 }
 
+std::vector<std::string> CamSource::EnumerateTargets() {
+	return {};
+}

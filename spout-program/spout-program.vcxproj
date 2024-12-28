@@ -184,6 +184,7 @@
     <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\sources\SpoutSource.cpp" />
     <ClCompile Include="src\Texture2D.cpp" />
+    <ClCompile Include="src\util\util.cpp" />
     <ClCompile Include="src\vendor\imgui\imgui.cpp" />
     <ClCompile Include="src\vendor\imgui\imgui_demo.cpp" />
     <ClCompile Include="src\vendor\imgui\imgui_draw.cpp" />
@@ -204,6 +205,7 @@
     <ClInclude Include="src\sources\CamSource.h" />
     <ClInclude Include="src\sources\SpoutSource.h" />
     <ClInclude Include="src\Texture2D.h" />
+    <ClInclude Include="src\util\util.h" />
     <ClInclude Include="src\vendor\imgui\imconfig.h" />
     <ClInclude Include="src\vendor\imgui\imgui.h" />
     <ClInclude Include="src\vendor\imgui\imgui_impl_glfw.h" />

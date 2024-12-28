@@ -9,10 +9,9 @@ Shader::Shader()  {
 	GLCall(m_programID = glCreateProgram());
 }
 
-void Shader::AddShader(GLuint type, const std::string& filepath)
+void Shader::AddShader(GLuint type, const std::string& source)
 {
 	GLCall(unsigned int id = glCreateShader(type));
-	std::string source = ParseShader(filepath);
 	const char* sourceRaw = source.c_str();
 	GLCall(glShaderSource(id, 1, &sourceRaw, NULL));
 	GLCall(glCompileShader(id));

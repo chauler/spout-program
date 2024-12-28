@@ -2,6 +2,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include "ascii_render.h"
+#include "util/util.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
@@ -12,7 +13,7 @@ ascii_render::ascii_render() : m_charset(m_charSets[m_numChars]), m_fullscreenQu
 	m_face = fontLoader.GetFace();
 	LoadCharacterData(8);
 
-	computeShader.AddShader(GL_COMPUTE_SHADER, "res/shaders/compute.cs");
+	computeShader.AddShader(GL_COMPUTE_SHADER, ReadFile("res/shaders/compute.cs"));
 	computeShader.CompileShader();
 	GLCall(glGenTextures(1, &m_computeShaderOutput));
 	GLCall(glActiveTexture(GL_TEXTURE0));
@@ -21,18 +22,15 @@ ascii_render::ascii_render() : m_charset(m_charSets[m_numChars]), m_fullscreenQu
 	GLCall(glBindImageTexture(0, m_computeShaderOutput, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8UI));
 	GLCall(glBindTexture(GL_TEXTURE_2D, 0));
 
-	screenRenderShader.AddShader(GL_VERTEX_SHADER, "res/shaders/sample.vs");
-	screenRenderShader.AddShader(GL_FRAGMENT_SHADER, "res/shaders/sample.fs");
-	screenRenderShader.CompileShader();
-	sobelShader.AddShader(GL_VERTEX_SHADER, "res/shaders/edge.vs");
-	sobelShader.AddShader(GL_FRAGMENT_SHADER, "res/shaders/edge.fs");
+	sobelShader.AddShader(GL_VERTEX_SHADER, ReadFile("res/shaders/edge.vs"));
+	sobelShader.AddShader(GL_FRAGMENT_SHADER, ReadFile("res/shaders/edge.fs"));
 	sobelShader.CompileShader();
-	dGaussianShader.AddShader(GL_VERTEX_SHADER, "res/shaders/edge.vs");
-	dGaussianShader.AddShader(GL_FRAGMENT_SHADER, "res/shaders/gaussian.fs");
+	dGaussianShader.AddShader(GL_VERTEX_SHADER, ReadFile("res/shaders/edge.vs"));
+	dGaussianShader.AddShader(GL_FRAGMENT_SHADER, ReadFile("res/shaders/gaussian.fs"));
 	dGaussianShader.CompileShader();
 
-	shader.AddShader(GL_VERTEX_SHADER, "res/shaders/text.vs");
-	shader.AddShader(GL_FRAGMENT_SHADER, "res/shaders/text.fs");
+	shader.AddShader(GL_VERTEX_SHADER, ReadFile("res/shaders/text.vs"));
+	shader.AddShader(GL_FRAGMENT_SHADER, ReadFile("res/shaders/text.fs"));
 	shader.CompileShader();
 	shader.Bind();
 	GLCall(glUniform4f(shader.GetUniform("bgColor"), m_bgColor[0], m_bgColor[1], m_bgColor[2], m_bgColor[3]));

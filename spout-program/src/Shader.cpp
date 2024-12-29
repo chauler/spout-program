@@ -9,6 +9,20 @@ Shader::Shader()  {
 	GLCall(m_programID = glCreateProgram());
 }
 
+Shader::~Shader() {
+	GLCall(glDeleteProgram(m_programID));
+}
+
+Shader::Shader(Shader&& other) noexcept : m_programID(other.m_programID) {
+	other.m_programID = 0;
+}
+
+Shader& Shader::operator=(Shader&& other) {
+	m_programID = other.m_programID;
+	other.m_programID = 0;
+	return *this;
+}
+
 void Shader::AddShader(GLuint type, const std::string& source)
 {
 	GLCall(unsigned int id = glCreateShader(type));
@@ -27,6 +41,10 @@ void Shader::AddShader(GLuint type, const std::string& source)
 }
 
 void Shader::CompileShader() {
+	//Program was already successfully compiled and linked
+	if (m_valid) {
+		return;
+	}
 	for (unsigned int id : shaders) {
 		GLCall(glAttachShader(m_programID, id));
 	}
@@ -40,6 +58,7 @@ void Shader::CompileShader() {
 		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
 	}
 	for (unsigned int id : shaders) {
+		GLCall(glDetachShader(m_programID, id));
 		GLCall(glDeleteShader(id));
 	}
 	m_valid = true;

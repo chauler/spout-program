@@ -162,7 +162,7 @@ void App::RunLogic() {
         return;
     }
     m_source->GetNextFrame(m_spoutSource.GetID(), GL_TEXTURE_2D);
-    m_ascii.UpdateState(m_charSize,
+    m_ascii.UpdateState(m_charSize, 16,
         { m_bgColor[0], m_bgColor[1], m_bgColor[2], m_bgColor[3] },
         { m_charColor[0], m_charColor[1], m_charColor[2], m_charColor[3] },
         Epsilon, Phi, Sigma, k, p

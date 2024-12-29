@@ -7,13 +7,18 @@
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
 #include "tracy/public/tracy/Tracy.hpp"
+#include <regex>
 
-ascii_render::ascii_render() : m_charset(m_charSets[m_numChars]), m_fullscreenQuad(Quad()), m_prevDimensions({0, 0}) {
+std::string ParseComputeShader(std::string&& input, unsigned int x, unsigned int y, unsigned int z);
+
+ascii_render::ascii_render() : m_charSize(12), m_numChars(16), m_charset(m_charSets[m_numChars]), m_fullscreenQuad(Quad()), m_prevDimensions({0, 0}) {
 	fontLoader.LoadFace("res/fonts/Roboto-Regular.ttf");
 	m_face = fontLoader.GetFace();
-	LoadCharacterData(8);
+	LoadCharacterData(m_charSize);
 
-	computeShader.AddShader(GL_COMPUTE_SHADER, ReadFile("res/shaders/compute.cs"));
+	std::string computeShaderSource = ParseComputeShader(ReadFile("res/shaders/compute.cs"), m_charSize, m_charSize, 1);
+
+	computeShader.AddShader(GL_COMPUTE_SHADER, computeShaderSource);
 	computeShader.CompileShader();
 	GLCall(glGenTextures(1, &m_computeShaderOutput));
 	GLCall(glActiveTexture(GL_TEXTURE0));
@@ -35,6 +40,7 @@ ascii_render::ascii_render() : m_charset(m_charSets[m_numChars]), m_fullscreenQu
 	shader.Bind();
 	GLCall(glUniform4f(shader.GetUniform("bgColor"), m_bgColor[0], m_bgColor[1], m_bgColor[2], m_bgColor[3]));
 	GLCall(glUniform4f(shader.GetUniform("charColor"), m_charColor[0], m_charColor[1], m_charColor[2], m_charColor[3]));
+	GLCall(glUniform1i(shader.GetUniform("charSize"), m_charSize));
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	shader.Unbind();
@@ -166,7 +172,7 @@ SpoutOutTex ascii_render::Draw(unsigned int imageID) {
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_FBO));
 	GLCall(glViewport(0, 0, cols, rows));
 	shader.Bind();
-	GLCall(glUniform2f(shader.GetUniform("imgDims"), cols / m_charSize, rows / m_charSize));
+	GLCall(glUniform2f(shader.GetUniform("imgDims"), ceil(cols / m_charSize), ceil(rows / m_charSize)));
 	GLCall(glUniform1i(shader.GetUniform("numChars"), m_numChars));  
 	GLCall(glBindVertexArray(m_VAO));
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -189,8 +195,7 @@ SpoutOutTex ascii_render::Draw(unsigned int imageID) {
 	return { m_outTex, (unsigned int)cols, (unsigned int)rows };
 }
 
-void ascii_render::UpdateImage(unsigned int imageID)
-{
+void ascii_render::UpdateImage(unsigned int imageID) {
 	ZoneScoped;
 
 	unsigned int cols, rows;
@@ -235,22 +240,29 @@ void ascii_render::UpdateImage(unsigned int imageID)
 	GLCall(glActiveTexture(GL_TEXTURE0));
 }
 
-void ascii_render::UpdateState(float charSize, glm::vec4 bgColor, glm::vec4 charColor, float Epsilon, float Phi, float Sigma, float k, float p) {
+void ascii_render::UpdateState(int charSize, int numChars, glm::vec4 bgColor, glm::vec4 charColor, float Epsilon, float Phi, float Sigma, float k, float p) {
 	ZoneScoped;
 
 	if (bgColor != m_bgColor) {
 		m_bgColor = bgColor;
-		shader.Bind();
-		GLCall(glUniform4f(shader.GetUniform("bgColor"), m_bgColor[0], m_bgColor[1], m_bgColor[2], m_bgColor[3]));
-		shader.Unbind();
+		GLCall(glProgramUniform4f(shader.GetProgram(), shader.GetUniform("bgColor"), m_bgColor[0], m_bgColor[1], m_bgColor[2], m_bgColor[3]));
 	}
 
 	if (charColor != m_charColor) {
 		m_charColor = charColor;
-		shader.Bind();
-		GLCall(glUniform4f(shader.GetUniform("charColor"), m_charColor[0], m_charColor[1], m_charColor[2], m_charColor[3]));
-		shader.Unbind();
+		GLCall(glProgramUniform4f(shader.GetProgram(), shader.GetUniform("charColor"), m_charColor[0], m_charColor[1], m_charColor[2], m_charColor[3]));
 	}
+
+	/*if (charSize != m_charSize) {
+		m_charSize = charSize;
+		GLCall(glProgramUniform1i(shader.GetProgram(), shader.GetUniform("charSize"), charSize));
+	}*/
+
+	if (numChars != m_numChars) {
+		m_numChars = numChars;
+		GLCall(glProgramUniform1f(shader.GetProgram(), shader.GetUniform("numChars"), numChars));
+	}
+
 	GLCall(glProgramUniform1f(dGaussianShader.GetProgram(), dGaussianShader.GetUniform("Epsilon"), Epsilon));
 	GLCall(glProgramUniform1f(dGaussianShader.GetProgram(), dGaussianShader.GetUniform("Phi"), Phi));
 	GLCall(glProgramUniform1f(dGaussianShader.GetProgram(), dGaussianShader.GetUniform("Sigma"), Sigma));
@@ -258,8 +270,7 @@ void ascii_render::UpdateState(float charSize, glm::vec4 bgColor, glm::vec4 char
 	GLCall(glProgramUniform1f(dGaussianShader.GetProgram(), dGaussianShader.GetUniform("p"), p));
 }
 
-void ascii_render::LoadCharacterData(int textSize)
-{
+void ascii_render::LoadCharacterData(int textSize) {
 	ZoneScoped;
 	//Function may be called to re-allocate textures. Only gen texture if this is first call.
 	if (m_textArray == 0) {
@@ -351,4 +362,19 @@ void ascii_render::LoadCharacterData(int textSize)
 		delete[] glyphBuffer;
 	}
 	delete[] buffer;
+}
+
+std::string ParseComputeShader(std::string&& input, unsigned int x, unsigned int y, unsigned int z) {
+	try {
+		std::regex x_size_re("\\{local_size_x\\}");
+		std::regex y_size_re("\\{local_size_y\\}");
+		std::regex z_size_re("\\{local_size_z\\}");
+		input = std::regex_replace(input, x_size_re, std::to_string(x));
+		input = std::regex_replace(input, y_size_re, std::to_string(y));
+		input = std::regex_replace(input, z_size_re, std::to_string(z));
+	}
+	catch (const std::regex_error& e) {
+		std::cout << "regex_error: " << e.what() << std::endl;
+	}
+	return input;
 }

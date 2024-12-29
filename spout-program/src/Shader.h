@@ -11,6 +11,13 @@
 class Shader {
 public:
 	Shader();
+	~Shader();
+	//Shader objects don't store shader source, so we can't copy the internal shader programs
+	//and guarantee their lifetime, so only moves are allowed.
+	Shader(const Shader&) = delete;
+	Shader& operator=(const Shader& other) = delete;
+	Shader(Shader&& other) noexcept;
+	Shader& operator=(Shader&& other);
 	void AddShader(GLuint, const std::string&);
 	void CompileShader();
 	void Bind();

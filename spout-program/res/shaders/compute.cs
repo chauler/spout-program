@@ -1,12 +1,12 @@
 #version 430 core
 
-layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
+layout(local_size_x = {local_size_x}, local_size_y = {local_size_y}, local_size_z = {local_size_z}) in;
 
 layout(rgba8ui, binding = 0) uniform uimage2D imgOutput;
 layout(rgba8ui, binding = 1) uniform uimage2D imgInput; //Processed image with sobel edge data vec3(x, y, angle);
 
-shared uint edges[64];
-shared uint luminance[64];
+shared uint edges[{local_size_x}*{local_size_y}];
+shared uint luminance[{local_size_x}*{local_size_y}];
 
 void main()
 {
@@ -32,12 +32,12 @@ void main()
     {
         uint edgeTotals[5] = uint[5](0, 0, 0, 0, 0);
         uint avgLum = 0;
-        for (uint i=0; (i<64); (i++))
+        for (uint i=0; (i<{local_size_x}*{local_size_y}); (i++))
         {
             edgeTotals[edges[i]] += 1;
             avgLum += luminance[i];
         }
-        avgLum = avgLum / 64;
+        avgLum = avgLum / {local_size_x}*{local_size_y};
         uint edge = 1;
         //if (edgeTotals[1] >= edgeTotals[edge])
         //{
@@ -55,7 +55,7 @@ void main()
         {
             edge = 4;
         }
-        if (edgeTotals[0] > 48)
+        if (edgeTotals[0] > {local_size_x}*{local_size_y}*2/3)
         {
             edge = 0;
         }

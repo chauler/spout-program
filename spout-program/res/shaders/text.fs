@@ -10,11 +10,12 @@ layout(binding=2) uniform usampler2D edgeTexture;
 layout(binding=3) uniform sampler2DArray edgeArray;
 uniform vec4 charColor;
 uniform vec4 bgColor;
-uniform int numChars;
+uniform int numChars = 16;
+uniform int charSize = 8;
 
 void main()
 {   
-    ivec2 downSampledPos = ivec2(floor(gl_FragCoord.x / 8), floor(gl_FragCoord.y / 8));
+    ivec2 downSampledPos = ivec2(floor(gl_FragCoord.x / charSize), floor(gl_FragCoord.y / charSize));
     //Colored text implementation
     vec4 sampled = vec4(0.0);
     vec4 sampledTemp = texture(inputTexture, outPosition.xy);
@@ -25,7 +26,7 @@ void main()
         sampled = vec4(1.0, 1.0, 1.0, texture(edgeArray, vec3(TexCoords.xy, edgeSample.x)).r);
         color = sampledTemp * sampled;
     } else {
-        sampled = vec4(1.0, 1.0, 1.0, texture(textArray, vec3(TexCoords.xy, edgeSample.w / 16)).r);
+        sampled = vec4(1.0, 1.0, 1.0, texture(textArray, vec3(TexCoords.xy, edgeSample.w / numChars)).r);
         color = sampledTemp * sampled;
     }
     //color = edgeSample * sampled;

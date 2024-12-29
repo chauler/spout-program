@@ -17,7 +17,7 @@ Shader::Shader(Shader&& other) noexcept : m_programID(other.m_programID) {
 	other.m_programID = 0;
 }
 
-Shader& Shader::operator=(Shader&& other) {
+Shader& Shader::operator=(Shader&& other) noexcept {
 	m_programID = other.m_programID;
 	other.m_programID = 0;
 	return *this;

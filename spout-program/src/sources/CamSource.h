@@ -12,5 +12,5 @@ public:
 	void SetTargetName(std::string) override;
 	std::vector<std::string> EnumerateTargets() override;
 private:
-	cv::VideoCapture m_cap;
+	static cv::VideoCapture m_cap;
 };

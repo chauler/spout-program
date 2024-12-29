@@ -127,7 +127,7 @@ void App::DrawGUI() {
         m_source = std::make_unique<CamSource>();
     }
 
-    ImGui::SliderFloat("Char Size", &m_charSize, 1.0f, 100.0f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
+    ImGui::SliderInt("Char Size", &m_charSize, 8, 32, "%d", ImGuiSliderFlags_AlwaysClamp);
     ImGui::ColorPicker4("Background Color", m_bgColor, ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_Float);
     ImGui::ColorPicker4("Character Color", m_charColor, ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_Float);
     ImGui::SliderFloat("Epsilon", &Epsilon, 0.0f, 0.5f, "%.3f", ImGuiSliderFlags_AlwaysClamp);

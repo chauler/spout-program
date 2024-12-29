@@ -6,10 +6,16 @@
 #include <opencv2/imgproc.hpp>
 #include "tracy/public/tracy/Tracy.hpp"
 
-CamSource::CamSource(): m_cap(0)
+cv::VideoCapture CamSource::m_cap = cv::VideoCapture(0);
+
+CamSource::CamSource()
 {
 	if (!m_cap.isOpened()) {
+		m_cap.open(0);
 		std::cout << "Error opening webcam capture" << std::endl;
+		m_cap.set(cv::VideoCaptureProperties::CAP_PROP_FRAME_WIDTH, 1920);
+		m_cap.set(cv::VideoCaptureProperties::CAP_PROP_FRAME_HEIGHT, 1080);
+		m_cap.set(cv::VideoCaptureProperties::CAP_PROP_FPS, 60);
 	}
 	else {
 		m_cap.set(cv::VideoCaptureProperties::CAP_PROP_FRAME_WIDTH, 1920);

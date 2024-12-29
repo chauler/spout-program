@@ -11,7 +11,7 @@
 
 std::string ParseComputeShader(std::string&& input, unsigned int x, unsigned int y, unsigned int z);
 
-ascii_render::ascii_render() : m_charSize(12), m_numChars(16), m_charset(m_charSets[m_numChars]), m_fullscreenQuad(Quad()), m_prevDimensions({0, 0}) {
+ascii_render::ascii_render() : m_charSize(10), m_numChars(16), m_charset(m_charSets[m_numChars]), m_fullscreenQuad(Quad()), m_prevDimensions({0, 0}) {
 	fontLoader.LoadFace("res/fonts/Roboto-Regular.ttf");
 	m_face = fontLoader.GetFace();
 	LoadCharacterData(m_charSize);
@@ -253,14 +253,31 @@ void ascii_render::UpdateState(int charSize, int numChars, glm::vec4 bgColor, gl
 		GLCall(glProgramUniform4f(shader.GetProgram(), shader.GetUniform("charColor"), m_charColor[0], m_charColor[1], m_charColor[2], m_charColor[3]));
 	}
 
-	/*if (charSize != m_charSize) {
+	if (charSize != m_charSize) {
 		m_charSize = charSize;
 		GLCall(glProgramUniform1i(shader.GetProgram(), shader.GetUniform("charSize"), charSize));
-	}*/
+		std::string computeShaderSource = ParseComputeShader(ReadFile("res/shaders/compute.cs"), charSize, charSize, 1);
+		Shader temp = Shader();
+		temp.AddShader(GL_COMPUTE_SHADER, computeShaderSource);
+		temp.CompileShader();
+		computeShader = std::move(temp);
+		LoadCharacterData(charSize);
+		//TODO: MAKE A BETTER SOLUTION.
+		//Need to reallocate m_positions and m_computeShaderOutput when charSize changes, but we can't know 
+		//if charSize changes within UpdateImage(), where we currently reallocate. This prompts reallocation.
+		m_prevDimensions.x = 0;
+	}
 
 	if (numChars != m_numChars) {
-		m_numChars = numChars;
-		GLCall(glProgramUniform1f(shader.GetProgram(), shader.GetUniform("numChars"), numChars));
+		try {
+			m_charset = m_charSets.at(m_numChars);
+			m_numChars = numChars;
+			GLCall(glProgramUniform1f(shader.GetProgram(), shader.GetUniform("numChars"), numChars));
+			LoadCharacterData(m_charSize);
+		}
+		catch (const std::out_of_range& e) {
+			
+		}
 	}
 
 	GLCall(glProgramUniform1f(dGaussianShader.GetProgram(), dGaussianShader.GetUniform("Epsilon"), Epsilon));
@@ -288,6 +305,7 @@ void ascii_render::LoadCharacterData(int textSize) {
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
 	unsigned char* buffer = new unsigned char[textSize * textSize * m_charset.length()]{};
 	GLCall(glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_R8, textSize, textSize, m_charset.length(), 0, GL_RED, GL_UNSIGNED_BYTE, buffer));
 	for (int i = 0; i < m_charset.length(); i++) {
@@ -309,7 +327,6 @@ void ascii_render::LoadCharacterData(int textSize) {
 			}
 		}
 
-
 		GLCall(glTexSubImage3D(GL_TEXTURE_2D_ARRAY,
 			0,
 			0,
@@ -325,6 +342,7 @@ void ascii_render::LoadCharacterData(int textSize) {
 		delete[] glyphBuffer;
 	}
 	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));
+	
 	unsigned char* newBuffer = new unsigned char[textSize * textSize * 4] {};
 	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, m_edgeArray));
 	GLCall(glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_R8, textSize, textSize, 4, 0, GL_RED, GL_UNSIGNED_BYTE, newBuffer));

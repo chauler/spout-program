@@ -17,7 +17,7 @@ public:
 	Shader(const Shader&) = delete;
 	Shader& operator=(const Shader& other) = delete;
 	Shader(Shader&& other) noexcept;
-	Shader& operator=(Shader&& other);
+	Shader& operator=(Shader&& other) noexcept;
 	void AddShader(GLuint, const std::string&);
 	void CompileShader();
 	void Bind();

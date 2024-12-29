@@ -192,7 +192,6 @@
     <ClCompile Include="src\vendor\imgui\imgui_impl_opengl3.cpp" />
     <ClCompile Include="src\vendor\imgui\imgui_tables.cpp" />
     <ClCompile Include="src\vendor\imgui\imgui_widgets.cpp" />
-    <ClCompile Include="src\vendor\stb\stb_image.h" />
     <ClCompile Include="src\vendor\tracy\public\TracyClient.cpp" />
   </ItemGroup>
   <ItemGroup>

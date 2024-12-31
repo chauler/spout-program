@@ -9,6 +9,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h> // Will drag system OpenGL headers
 #include <iostream>
+#include "escapi\escapi.h"
 #include "App.h"
 #include "tracy/public/tracy/Tracy.hpp"
 
@@ -68,6 +69,8 @@ int main(int, char**)
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
+
+    setupESCAPI();
 
     App app{window};
     // Main loop

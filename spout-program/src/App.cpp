@@ -7,48 +7,10 @@
 #include "App.h"
 #include "Texture2D.h"
 #include <SpoutLibrary/SpoutLibrary.h>
-#include <opencv2/core.hpp>
-#include <opencv2/imgcodecs.hpp>
 #include "tracy/public/tracy/Tracy.hpp"
 #include <memory>
 #include "sources/SpoutSource.h"
 #include "sources/CamSource.h"
-
-//Converts OpenGL texture to OpenCV mat for easier processing. Resize mat to provided dimensions.
-//Argument of 0 for one of the dimensions means we scale it to match other dimension with same aspect ratio as texture.
-//Argument of 0 for both dimensions means we do not resize the mat.
-cv::Mat GetImageFromTexture(const GLuint texID, const unsigned int width=0, const unsigned int height=0) {
-    ZoneScoped;
-    GLCall(glBindTexture(GL_TEXTURE_2D, texID));
-    GLenum gl_texture_width, gl_texture_height;
-
-    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, (GLint*)&gl_texture_width);
-    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, (GLint*)&gl_texture_height);
-    cv::Mat image(gl_texture_height, gl_texture_width, CV_8UC4);
-    glPixelStorei(GL_PACK_ALIGNMENT, 1);
-    //Temporarily removed. Performance consideration, but it causes crash when texture shrinks for some reason.
-    //glPixelStorei(GL_PACK_ROW_LENGTH, image.step[0] / image.elemSize());
-    GLCall(glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.data));
-    GLCall(glBindTexture(GL_TEXTURE_2D, 0));
-    //If both are zero, skip all resizing.
-    if (width != 0 || height != 0) {
-        //Calculate width that keeps input aspect ratio
-        if (width == 0) {
-            //Cast to float to avoid integer division and divide by 0 errors
-            unsigned int newWidth = gl_texture_width / ((float)gl_texture_height / height);
-            cv::resize(image, image, cv::Size(newWidth, height));
-        } //Calculate height that keeps input aspect ratio
-        else if (height == 0) {
-            unsigned int newHeight = gl_texture_height / ((float)gl_texture_width / width);
-            cv::resize(image, image, cv::Size(width, newHeight));
-        } //User input fixed width and height
-        else {
-            cv::resize(image, image, cv::Size(width, height));
-        }
-    }
-    //cv::cvtColor(image, image, cv::COLOR_RGBA2GRAY);
-    return image;
-}
 
 void IconifyCallback(GLFWwindow* window, int iconified) {
     std::cout << iconified << std::endl;
@@ -88,6 +50,7 @@ void App::DrawGUI() {
     //Selectable returns true if clicked that frame. Filter for only when *changing* selection
     if (ImGui::Selectable("Spout", sourceType == SourceType::SpoutSource) && sourceType != SourceType::SpoutSource) {
         sourceType = SourceType::SpoutSource;
+        currentSourceName = "";
         m_source = std::make_unique<SpoutSource>(currentSourceName);
     }
 
@@ -122,11 +85,48 @@ void App::DrawGUI() {
 
     ImGui::Dummy(ImVec2(0.0f, 10.0f));
 
-    if (ImGui::Selectable("Cam", sourceType == SourceType::CamSource) && sourceType != SourceType::CamSource) {
-        sourceType = SourceType::CamSource;
-        m_source = std::make_unique<CamSource>();
+    if (ImGui::Selectable("Cam", sourceType == SourceType::CamSource)) {
+        if (sourceType != SourceType::CamSource) {
+            ImGui::OpenPopup("Warning");
+            sourceType = SourceType::CamSource;
+            currentSourceName = "";
+            m_source = std::make_unique<CamSource>();
+        }
     }
 
+    if (sourceType == SourceType::CamSource) {
+        if (ImGui::BeginPopupModal("Warning", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+            ImGui::Text("Camera support is experimental - your webcam may not work properly.");
+            if (ImGui::Button("OK", ImVec2(120, 0))) {
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndPopup();
+        }
+        if (ImGui::BeginCombo("Camera Sources", currentSourceName.c_str())) {
+            std::vector<std::string> camSourceList = m_source->EnumerateTargets();
+
+            for (const std::string& sourceName : camSourceList) {
+                if (sourceName == m_sender->GetName()) {
+                    continue;
+                }
+                //Option was just selected - update receiver
+                if (ImGui::Selectable(sourceName.c_str(), sourceName == currentSourceName)) {
+                    //Execute once on click
+                    if (sourceName != currentSourceName) {
+                        m_source->SetTargetName(sourceName.c_str());
+                    }
+                    currentSourceName = sourceName;
+                }
+
+                if (sourceName == currentSourceName) {
+                    ImGui::SetItemDefaultFocus();
+                }
+            }
+
+            ImGui::EndCombo();
+        }
+    }
+    
     ImGui::SliderInt("Char Size", &m_charSize, 8, 32, "%d", ImGuiSliderFlags_AlwaysClamp);
     ImGui::ColorPicker4("Background Color", m_bgColor, ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_Float);
     ImGui::ColorPicker4("Character Color", m_charColor, ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_Float);

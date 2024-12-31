@@ -1,8 +1,4 @@
 #pragma once
-#include <opencv2/core.hpp>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/highgui.hpp>
-#include <opencv2/imgproc.hpp>
 #include "SpoutLibrary/SpoutLibrary.h"
 #include "effects/ascii_render.h"
 #include "Texture2D.h"
@@ -33,6 +29,7 @@ private:
 	//GUI State
 	unsigned int spoutSourceID = 0;
 	std::string currentSourceName{};
+	bool popupOpen = false;
 
 	//App State editable in the GUI
 	int m_charSize = 10;
@@ -45,5 +42,3 @@ private:
 	float k = 2.26;
 	float p = 1.00;
 };
-
-//cv::Mat GetImageFromTexture(const GLuint, const unsigned int, const unsigned int);

@@ -99,8 +99,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);glfw3.lib;opengl32.lib;Spout.lib;SpoutLibrary.lib;SpoutDX.lib;SpoutDX9.lib;SpoutDX12.lib;glew32s.lib;opencv_core4100d.lib;opencv_imgproc4100d.lib;opencv_videoio4100d.lib;opencv_imgcodecs4100d.lib;freetype.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)dependencies\spout;$(SolutionDir)dependencies\GLFW\lib;$(SolutionDir)dependencies\GLEW\lib\Release\x64;$(SolutionDir)dependencies\opencv;$(SolutionDir)dependencies\freetype;$(SolutionDir)dependencies\spout\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);glfw3.lib;opengl32.lib;Spout.lib;SpoutLibrary.lib;SpoutDX.lib;SpoutDX9.lib;SpoutDX12.lib;glew32s.lib;freetype.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)dependencies\spout;$(SolutionDir)dependencies\GLFW\lib;$(SolutionDir)dependencies\GLEW\lib\Release\x64;$(SolutionDir)dependencies\freetype;$(SolutionDir)dependencies\spout\</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /d /y "$(ProjectDir)dlls\*.*" "$(OutDir)"</Command>
@@ -122,8 +122,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);glfw3.lib;opengl32.lib;Spout.lib;SpoutLibrary.lib;SpoutDX.lib;SpoutDX9.lib;SpoutDX12.lib;glew32s.lib;opencv_core4100.lib;opencv_imgproc4100.lib;opencv_videoio4100.lib;opencv_imgcodecs4100.lib;freetype.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)dependencies\spout;$(SolutionDir)dependencies\GLFW\lib;$(SolutionDir)dependencies\GLEW\lib\Release\x64;$(SolutionDir)dependencies\opencv;$(SolutionDir)dependencies\freetype;$(SolutionDir)dependencies\spout\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);glfw3.lib;opengl32.lib;Spout.lib;SpoutLibrary.lib;SpoutDX.lib;SpoutDX9.lib;SpoutDX12.lib;glew32s.lib;freetype.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)dependencies\spout;$(SolutionDir)dependencies\GLFW\lib;$(SolutionDir)dependencies\GLEW\lib\Release\x64;$(SolutionDir)dependencies\freetype;$(SolutionDir)dependencies\spout\</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /d /y "$(ProjectDir)dlls\*.*" "$(OutDir)"</Command>
@@ -142,8 +142,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);glfw3.lib;opengl32.lib;Spout.lib;SpoutLibrary.lib;SpoutDX.lib;SpoutDX9.lib;SpoutDX12.lib;glew32s.lib;opencv_core4100d.lib;opencv_imgproc4100d.lib;opencv_videoio4100d.lib;opencv_imgcodecs4100d.lib;freetype.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)dependencies\spout;$(SolutionDir)dependencies\GLFW\lib;$(SolutionDir)dependencies\GLEW\lib\Release\x64;$(SolutionDir)dependencies\opencv;$(SolutionDir)dependencies\freetype;$(SolutionDir)dependencies\spout\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);glfw3.lib;opengl32.lib;Spout.lib;SpoutLibrary.lib;SpoutDX.lib;SpoutDX9.lib;SpoutDX12.lib;glew32s.lib;freetype.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)dependencies\spout;$(SolutionDir)dependencies\GLFW\lib;$(SolutionDir)dependencies\GLEW\lib\Release\x64;$(SolutionDir)dependencies\freetype;$(SolutionDir)dependencies\spout\</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /d /y "$(ProjectDir)dlls\*.*" "$(OutDir)"</Command>
@@ -165,8 +165,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);glfw3.lib;opengl32.lib;Spout.lib;SpoutLibrary.lib;SpoutDX.lib;SpoutDX9.lib;SpoutDX12.lib;glew32s.lib;opencv_core4100.lib;opencv_imgproc4100.lib;opencv_videoio4100.lib;opencv_imgcodecs4100.lib;freetype.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)dependencies\spout;$(SolutionDir)dependencies\GLFW\lib;$(SolutionDir)dependencies\GLEW\lib\Release\x64;$(SolutionDir)dependencies\opencv;$(SolutionDir)dependencies\freetype;$(SolutionDir)dependencies\spout\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);glfw3.lib;opengl32.lib;Spout.lib;SpoutLibrary.lib;SpoutDX.lib;SpoutDX9.lib;SpoutDX12.lib;glew32s.lib;freetype.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)dependencies\spout;$(SolutionDir)dependencies\GLFW\lib;$(SolutionDir)dependencies\GLEW\lib\Release\x64;$(SolutionDir)dependencies\freetype;$(SolutionDir)dependencies\spout\</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /d /y "$(ProjectDir)dlls\*.*" "$(OutDir)"</Command>
@@ -185,6 +185,7 @@
     <ClCompile Include="src\sources\SpoutSource.cpp" />
     <ClCompile Include="src\Texture2D.cpp" />
     <ClCompile Include="src\util\util.cpp" />
+    <ClCompile Include="src\vendor\escapi\escapi.cpp" />
     <ClCompile Include="src\vendor\imgui\imgui.cpp" />
     <ClCompile Include="src\vendor\imgui\imgui_demo.cpp" />
     <ClCompile Include="src\vendor\imgui\imgui_draw.cpp" />
@@ -205,6 +206,7 @@
     <ClInclude Include="src\sources\SpoutSource.h" />
     <ClInclude Include="src\Texture2D.h" />
     <ClInclude Include="src\util\util.h" />
+    <ClInclude Include="src\vendor\escapi\escapi.h" />
     <ClInclude Include="src\vendor\imgui\imconfig.h" />
     <ClInclude Include="src\vendor\imgui\imgui.h" />
     <ClInclude Include="src\vendor\imgui\imgui_impl_glfw.h" />
@@ -217,6 +219,7 @@
     <ClInclude Include="src\vendor\tracy\public\tracy\Tracy.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\..\Users\Alex\Downloads\escapi3\bin\x64\escapi.dll" />
     <None Include="res\shaders\compute.cs" />
     <None Include="res\shaders\edge.fs" />
     <None Include="res\shaders\edge.vs" />

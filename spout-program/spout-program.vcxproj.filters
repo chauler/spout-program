@@ -75,6 +75,9 @@
     <ClCompile Include="src\util\util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\vendor\escapi\escapi.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\vendor\imgui\imconfig.h">
@@ -137,6 +140,9 @@
     <ClInclude Include="src\util\util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\vendor\escapi\escapi.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\shaders\sample.vs" />
@@ -147,5 +153,6 @@
     <None Include="res\shaders\edge.vs" />
     <None Include="res\shaders\edge.fs" />
     <None Include="res\shaders\gaussian.fs" />
+    <None Include="..\..\..\Users\Alex\Downloads\escapi3\bin\x64\escapi.dll" />
   </ItemGroup>
 </Project>

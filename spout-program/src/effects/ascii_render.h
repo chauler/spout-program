@@ -60,14 +60,15 @@ private:
 		{1.0f, 0.0f, 15.0f},
 		{1.0f, 1.0f, 15.0f}
 	};
+	unsigned int m_outputW = 0, m_outputH = 0;
 	unsigned int indices[6] = { 0, 1, 3, 1, 2, 3 };
 	InstanceData* m_positions;
 	glm::vec4 m_bgColor{1.0, 0.5, 0.5, 1.0};
 	glm::vec4 m_charColor{ 1.0, 1.0, 1.0, 1.0 };
 	std::map<unsigned int, std::wstring> m_charSets{
 		{8, L" .-+o$#8"},
-		{16, L" .',:;clxokXdO0KN"},
-		//{16, L" ,:;clxokXdO0KNNN"},
+		//{16, L" .',:;clxokXdO0KN"},
+		{16, L" ,:;clxokXdO0KNNN"},
 		{32, L" `´¨·¸˜’:~‹°—÷¡|/+}?1u@VY©4ÐŽÂMÆ"}
 	};
 	std::wstring& m_charset;

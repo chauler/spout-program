@@ -85,13 +85,6 @@ void main()
         {
             color = uvec4(0);
         }
-        if(gl_WorkGroupID.y == gl_NumWorkGroups.y)
-        {
-            imageStore(imgOutput, ivec2(int(gl_WorkGroupID.x), int(gl_WorkGroupID.y)), uvec4(3, color.yzw));
-        }
-        else
-        {
         imageStore(imgOutput, ivec2(int(gl_WorkGroupID.x), int(gl_WorkGroupID.y)), color);
-        }
     }
 }

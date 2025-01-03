@@ -11,16 +11,15 @@ const vec2 vertices[] = vec2[](
 );
 
 out vec2 outPosition;
-out vec3 TexCoords;
-out vec3 pixelColor;
+out vec2 TexCoords;
 
 uniform vec2 imgDims;
 
 void main()
 {
+	//Vertex is 0 or 1. Marks position along each quad. Position should be the origin of each quad, value 0 through numCols/numRows-1
     vec2 unNormalizedPosition = vec2(vertex.x * 1.0 / imgDims.x + position.x / imgDims.x, vertex.y * 1.0 / imgDims.y + position.y / imgDims.y);
 	gl_Position = vec4(unNormalizedPosition.x * 2.0 - 1.0, -(unNormalizedPosition.y * 2.0 - 1.0), 0.0, 1.0);
-	TexCoords = vec3(vertices[gl_VertexID], position.z);
-	pixelColor = vec3(vertices[gl_VertexID], 0.0);
+	TexCoords = vertices[gl_VertexID];
 	outPosition = position.xy / imgDims.xy;
 }  

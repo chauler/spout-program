@@ -53,6 +53,8 @@ ascii_render::ascii_render() : m_charSize(10), m_numChars(16), m_charset(m_charS
 	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 	GLCall(glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_outTex, 0));
 	GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
 	GLCall(glDrawBuffers(1, DrawBuffers));
@@ -66,6 +68,8 @@ ascii_render::ascii_render() : m_charSize(10), m_numChars(16), m_charset(m_charS
 	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 
 	GLCall(glGenFramebuffers(1, &m_intermediateFBO));
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_intermediateFBO));
@@ -75,6 +79,8 @@ ascii_render::ascii_render() : m_charSize(10), m_numChars(16), m_charset(m_charS
 	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 80, 60, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	/*glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);*/
 	GLCall(glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_intermediate, 0));
 	GLCall(glDrawBuffers(1, DrawBuffers));
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -88,6 +94,8 @@ ascii_render::ascii_render() : m_charSize(10), m_numChars(16), m_charset(m_charS
 	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8UI, 80, 60, 0, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, 0));
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	/*glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);*/
 	GLCall(glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_intermediate2, 0));
 	GLCall(glDrawBuffers(1, DrawBuffers));
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -136,7 +144,7 @@ SpoutOutTex ascii_render::Draw(unsigned int imageID) {
 
 	//This buffer contains the layer each position will sample its texture from
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_iVBO));
-	GLCall(glBufferData(GL_ARRAY_BUFFER, rows / m_charSize * cols / m_charSize * sizeof(InstanceData), m_positions, GL_DYNAMIC_DRAW));
+	GLCall(glBufferData(GL_ARRAY_BUFFER, (rows / m_charSize) * (cols / m_charSize) * sizeof(InstanceData), m_positions, GL_DYNAMIC_DRAW));
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_intermediateFBO));
@@ -170,10 +178,10 @@ SpoutOutTex ascii_render::Draw(unsigned int imageID) {
 	GLCall(glMemoryBarrier(GL_ALL_BARRIER_BITS));
 
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_FBO));
-	GLCall(glViewport(0, 0, cols, rows));
+	GLCall(glViewport(0, 0, m_outputW, m_outputH));
 	shader.Bind();
 	GLCall(glUniform2f(shader.GetUniform("imgDims"), ceil(cols / m_charSize), ceil(rows / m_charSize)));
-	GLCall(glUniform1i(shader.GetUniform("numChars"), m_numChars));  
+	GLCall(glUniform1i(shader.GetUniform("numChars"), m_numChars));
 	GLCall(glBindVertexArray(m_VAO));
 	glClear(GL_COLOR_BUFFER_BIT);
 	GLCall(glActiveTexture(GL_TEXTURE0));
@@ -192,7 +200,7 @@ SpoutOutTex ascii_render::Draw(unsigned int imageID) {
 	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 
-	return { m_outTex, (unsigned int)cols, (unsigned int)rows };
+	return { m_outTex, (unsigned int)m_outputW, (unsigned int)m_outputH };
 }
 
 void ascii_render::UpdateImage(unsigned int imageID) {
@@ -209,8 +217,12 @@ void ascii_render::UpdateImage(unsigned int imageID) {
 	if (cols != m_prevDimensions.x || rows != m_prevDimensions.y) {
 		m_prevDimensions.x = cols;
 		m_prevDimensions.y = rows;
-		unsigned int outCols = ceil(cols / m_charSize);
-		unsigned int outRows = ceil(rows / m_charSize);
+		unsigned int outCols = cols / m_charSize;
+		unsigned int outRows = rows / m_charSize;
+		unsigned int leftoverX = cols % m_charSize;
+		unsigned int leftoverY = rows % m_charSize;
+		m_outputW = cols - leftoverX;
+		m_outputH = rows - leftoverY;
 		if (m_positions != nullptr) {
 			delete(m_positions);
 		}
@@ -229,7 +241,7 @@ void ascii_render::UpdateImage(unsigned int imageID) {
 
 		GLCall(glActiveTexture(GL_TEXTURE0));
 		GLCall(glBindTexture(GL_TEXTURE_2D, m_outTex));
-		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
+		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_outputW, m_outputH, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
 
 		GLCall(glBindTexture(GL_TEXTURE_2D, m_intermediate));
 		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));

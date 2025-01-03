@@ -15,7 +15,7 @@ uniform int charSize = 8;
 
 void main()
 {   
-    ivec2 downSampledPos = ivec2(floor(gl_FragCoord.x / charSize), floor(gl_FragCoord.y / charSize));
+    ivec2 downSampledPos = ivec2(floor(gl_FragCoord.x / charSize), ceil(gl_FragCoord.y / charSize)); //Use ceil for y so we get the correct coord after inverting
     //Colored text implementation
     vec4 sampled = vec4(0.0);
     vec4 sampledTemp = texture(inputTexture, outPosition.xy);

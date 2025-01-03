@@ -3,7 +3,9 @@
 #include "effects/ascii_render.h"
 #include "Texture2D.h"
 #include "sources/ISource.h"
+#include "outputs/IOutput.h"
 #include <memory>
+#include "sources/SpoutSource.h"
 
 enum class SourceType: unsigned int { SpoutSource, CamSource, None };
 
@@ -17,7 +19,7 @@ private:
 	GLFWwindow* m_window = nullptr;
 	SPOUTLIBRARY* m_receiver = nullptr;
 	SPOUTLIBRARY* m_sender = nullptr;
-	Texture2D m_spoutSource{}, test{};
+	Texture2D m_spoutSource{};
 	std::shared_ptr<unsigned char[]> m_spoutSourceData{};
 	unsigned int m_imageW = 0, m_imageH = 0;
 	ImGuiIO& m_ImGuiIO;
@@ -26,10 +28,13 @@ private:
 	SourceType sourceType = SourceType::None;
 	inline static int m_iconified = 0;
 
+	IOutput* test;
+
 	//GUI State
 	unsigned int spoutSourceID = 0;
 	std::string currentSourceName{};
 	bool popupOpen = false;
+	SpoutOutTex outputTex{};
 
 	//App State editable in the GUI
 	int m_charSize = 10;

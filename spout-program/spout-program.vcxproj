@@ -92,15 +92,15 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>GLEW_STATIC;%(PreprocessorDefinitions);DEBUG;TRACY_ENABLE;</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src\;$(ProjectDir)src\vendor;$(SolutionDir)dependencies\GLFW\include\;$(SolutionDir)dependencies\GLEW\include;$(SolutionDir)dependencies\spout;$(SolutionDir)dependencies\opencv\;$(SolutionDir)dependencies\freetype\freetype;$(SolutionDir)dependencies\glm\;$(ProjectDir)src\vendor\tracy;$(SolutionDir)dependencies\spout\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src\;$(ProjectDir)src\vendor;$(SolutionDir)dependencies\GLFW\include\;$(SolutionDir)dependencies\GLEW\include;$(SolutionDir)dependencies\spout;$(SolutionDir)dependencies\opencv\;$(SolutionDir)dependencies\freetype\freetype;$(SolutionDir)dependencies\glm\;$(ProjectDir)src\vendor\tracy;$(SolutionDir)dependencies\spout\;$(SolutionDir)dependencies\softcam\</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);glfw3.lib;opengl32.lib;Spout.lib;SpoutLibrary.lib;SpoutDX.lib;SpoutDX9.lib;SpoutDX12.lib;glew32s.lib;freetype.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)dependencies\spout;$(SolutionDir)dependencies\GLFW\lib;$(SolutionDir)dependencies\GLEW\lib\Release\x64;$(SolutionDir)dependencies\freetype;$(SolutionDir)dependencies\spout\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);glfw3.lib;opengl32.lib;Spout.lib;SpoutLibrary.lib;SpoutDX.lib;SpoutDX9.lib;SpoutDX12.lib;glew32s.lib;freetype.lib;softcam.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)dependencies\spout;$(SolutionDir)dependencies\GLFW\lib;$(SolutionDir)dependencies\GLEW\lib\Release\x64;$(SolutionDir)dependencies\freetype;$(SolutionDir)dependencies\spout\;$(SolutionDir)dependencies\softcam\</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /d /y "$(ProjectDir)dlls\*.*" "$(OutDir)"</Command>
@@ -114,7 +114,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>GLEW_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src\;$(ProjectDir)src\vendor;$(SolutionDir)dependencies\GLFW\include\;$(SolutionDir)dependencies\GLEW\include;$(SolutionDir)dependencies\spout;$(SolutionDir)dependencies\opencv\;$(SolutionDir)dependencies\freetype\freetype;$(SolutionDir)dependencies\glm\;;$(SolutionDir)dependencies\spout\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src\;$(ProjectDir)src\vendor;$(SolutionDir)dependencies\GLFW\include\;$(SolutionDir)dependencies\GLEW\include;$(SolutionDir)dependencies\spout;$(SolutionDir)dependencies\opencv\;$(SolutionDir)dependencies\freetype\freetype;$(SolutionDir)dependencies\glm\;;$(SolutionDir)dependencies\spout\;$(SolutionDir)dependencies\softcam\</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -122,8 +122,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);glfw3.lib;opengl32.lib;Spout.lib;SpoutLibrary.lib;SpoutDX.lib;SpoutDX9.lib;SpoutDX12.lib;glew32s.lib;freetype.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)dependencies\spout;$(SolutionDir)dependencies\GLFW\lib;$(SolutionDir)dependencies\GLEW\lib\Release\x64;$(SolutionDir)dependencies\freetype;$(SolutionDir)dependencies\spout\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);glfw3.lib;opengl32.lib;Spout.lib;SpoutLibrary.lib;SpoutDX.lib;SpoutDX9.lib;SpoutDX12.lib;glew32s.lib;freetype.lib;softcam.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)dependencies\spout;$(SolutionDir)dependencies\GLFW\lib;$(SolutionDir)dependencies\GLEW\lib\Release\x64;$(SolutionDir)dependencies\freetype;$(SolutionDir)dependencies\spout\;$(SolutionDir)dependencies\softcam\</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /d /y "$(ProjectDir)dlls\*.*" "$(OutDir)"</Command>
@@ -135,15 +135,15 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>GLEW_STATIC;%(PreprocessorDefinitions);DEBUG;TRACY_ENABLE;</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src\;$(ProjectDir)src\vendor;$(SolutionDir)dependencies\GLFW\include\;$(SolutionDir)dependencies\GLEW\include;$(SolutionDir)dependencies\spout;$(SolutionDir)dependencies\opencv\;$(SolutionDir)dependencies\freetype\freetype;$(SolutionDir)dependencies\glm\;$(ProjectDir)src\vendor\tracy;$(SolutionDir)dependencies\spout\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src\;$(ProjectDir)src\vendor;$(SolutionDir)dependencies\GLFW\include\;$(SolutionDir)dependencies\GLEW\include;$(SolutionDir)dependencies\spout;$(SolutionDir)dependencies\opencv\;$(SolutionDir)dependencies\freetype\freetype;$(SolutionDir)dependencies\glm\;$(ProjectDir)src\vendor\tracy;$(SolutionDir)dependencies\spout\;$(SolutionDir)dependencies\softcam\</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);glfw3.lib;opengl32.lib;Spout.lib;SpoutLibrary.lib;SpoutDX.lib;SpoutDX9.lib;SpoutDX12.lib;glew32s.lib;freetype.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)dependencies\spout;$(SolutionDir)dependencies\GLFW\lib;$(SolutionDir)dependencies\GLEW\lib\Release\x64;$(SolutionDir)dependencies\freetype;$(SolutionDir)dependencies\spout\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);glfw3.lib;opengl32.lib;Spout.lib;SpoutLibrary.lib;SpoutDX.lib;SpoutDX9.lib;SpoutDX12.lib;glew32s.lib;freetype.lib;softcam.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)dependencies\spout;$(SolutionDir)dependencies\GLFW\lib;$(SolutionDir)dependencies\GLEW\lib\Release\x64;$(SolutionDir)dependencies\freetype;$(SolutionDir)dependencies\spout\;$(SolutionDir)dependencies\softcam\</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /d /y "$(ProjectDir)dlls\*.*" "$(OutDir)"</Command>
@@ -157,7 +157,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>GLEW_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src\;$(ProjectDir)src\vendor;$(SolutionDir)dependencies\GLFW\include\;$(SolutionDir)dependencies\GLEW\include;$(SolutionDir)dependencies\spout;$(SolutionDir)dependencies\opencv\;$(SolutionDir)dependencies\freetype\freetype;$(SolutionDir)dependencies\glm\;;$(SolutionDir)dependencies\spout\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src\;$(ProjectDir)src\vendor;$(SolutionDir)dependencies\GLFW\include\;$(SolutionDir)dependencies\GLEW\include;$(SolutionDir)dependencies\spout;$(SolutionDir)dependencies\opencv\;$(SolutionDir)dependencies\freetype\freetype;$(SolutionDir)dependencies\glm\;;$(SolutionDir)dependencies\spout\;$(SolutionDir)dependencies\softcam\</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -165,8 +165,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);glfw3.lib;opengl32.lib;Spout.lib;SpoutLibrary.lib;SpoutDX.lib;SpoutDX9.lib;SpoutDX12.lib;glew32s.lib;freetype.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)dependencies\spout;$(SolutionDir)dependencies\GLFW\lib;$(SolutionDir)dependencies\GLEW\lib\Release\x64;$(SolutionDir)dependencies\freetype;$(SolutionDir)dependencies\spout\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);glfw3.lib;opengl32.lib;Spout.lib;SpoutLibrary.lib;SpoutDX.lib;SpoutDX9.lib;SpoutDX12.lib;glew32s.lib;freetype.lib;softcam.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)dependencies\spout;$(SolutionDir)dependencies\GLFW\lib;$(SolutionDir)dependencies\GLEW\lib\Release\x64;$(SolutionDir)dependencies\freetype;$(SolutionDir)dependencies\spout\;$(SolutionDir)dependencies\softcam\</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /d /y "$(ProjectDir)dlls\*.*" "$(OutDir)"</Command>
@@ -176,6 +176,9 @@
     <ClCompile Include="src\App.cpp" />
     <ClCompile Include="src\effects\ascii_render.cpp" />
     <ClCompile Include="src\FontLoader.cpp" />
+    <ClCompile Include="src\gui\SourceCombo.cpp" />
+    <ClCompile Include="src\outputs\IOutput.h" />
+    <ClCompile Include="src\outputs\VirtualCamera.cpp" />
     <ClCompile Include="src\Quad.cpp" />
     <ClCompile Include="src\sources\CamSource.cpp" />
     <ClCompile Include="src\sources\ISource.h" />
@@ -199,6 +202,8 @@
     <ClInclude Include="src\App.h" />
     <ClInclude Include="src\effects\ascii_render.h" />
     <ClInclude Include="src\FontLoader.h" />
+    <ClInclude Include="src\gui\SourceCombo.h" />
+    <ClInclude Include="src\outputs\VirtualCamera.h" />
     <ClInclude Include="src\Quad.h" />
     <ClInclude Include="src\Renderer.h" />
     <ClInclude Include="src\Shader.h" />
@@ -219,7 +224,6 @@
     <ClInclude Include="src\vendor\tracy\public\tracy\Tracy.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\Users\Alex\Downloads\escapi3\bin\x64\escapi.dll" />
     <None Include="res\shaders\compute.cs" />
     <None Include="res\shaders\edge.fs" />
     <None Include="res\shaders\edge.vs" />

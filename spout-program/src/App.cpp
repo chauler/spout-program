@@ -11,6 +11,8 @@
 #include <memory>
 #include "sources/SpoutSource.h"
 #include "sources/CamSource.h"
+#include "outputs/VirtualCamera.h"
+#include "gui/SourceCombo.h"
 
 void IconifyCallback(GLFWwindow* window, int iconified) {
     std::cout << iconified << std::endl;
@@ -21,12 +23,14 @@ App::App(GLFWwindow* window): m_window(window), m_ImGuiIO(ImGui::GetIO()), m_asc
     glfwSetWindowIconifyCallback(window, IconifyCallback);
     m_source = nullptr;
     m_sender = GetSpout();
-    m_sender->SetSenderName("SpoutProgram");
-    m_spoutSource.Allocate(GL_RGBA, 1920, 1017, GL_RGBA, GL_UNSIGNED_BYTE, std::make_unique<unsigned char[]>(1920 * 1017 * 4).get());
+    m_sender->SetSenderName("Spout Effects");
+    m_spoutSource.Allocate(GL_RGBA, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE,  0);
     m_spoutSource.SetParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     m_spoutSource.SetParameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     m_spoutSource.SetParameter(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     m_spoutSource.SetParameter(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    test = new VirtualCamera("");
 }
 
 void App::DrawGUI() {
@@ -55,32 +59,7 @@ void App::DrawGUI() {
     }
 
     if (sourceType == SourceType::SpoutSource) {
-        //Do these every frame that spout is selected
-
-        //Draw list and update receiver if choice is selected
-        if (ImGui::BeginCombo("Spout Sources", currentSourceName.c_str())) {
-            std::vector<std::string> spoutSourceList = m_source->EnumerateTargets();
-
-            for (const std::string & sourceName : spoutSourceList) {
-                if (sourceName == m_sender->GetName()) {
-                    continue;
-                }
-                //Option was just selected - update receiver
-                if (ImGui::Selectable(sourceName.c_str(), sourceName == currentSourceName)) {
-                    //Execute once on click
-                    if (sourceName != currentSourceName) {
-                        m_source->SetTargetName(sourceName.c_str());
-                    }
-                    currentSourceName = sourceName;
-                }
-
-                if (sourceName == currentSourceName) {
-                    ImGui::SetItemDefaultFocus();
-                }
-            }
-
-            ImGui::EndCombo();
-        }
+        SourceCombo("Spout Sources", currentSourceName, m_source.get());
     }
 
     ImGui::Dummy(ImVec2(0.0f, 10.0f));
@@ -102,29 +81,7 @@ void App::DrawGUI() {
             }
             ImGui::EndPopup();
         }
-        if (ImGui::BeginCombo("Camera Sources", currentSourceName.c_str())) {
-            std::vector<std::string> camSourceList = m_source->EnumerateTargets();
-
-            for (const std::string& sourceName : camSourceList) {
-                if (sourceName == m_sender->GetName()) {
-                    continue;
-                }
-                //Option was just selected - update receiver
-                if (ImGui::Selectable(sourceName.c_str(), sourceName == currentSourceName)) {
-                    //Execute once on click
-                    if (sourceName != currentSourceName) {
-                        m_source->SetTargetName(sourceName.c_str());
-                    }
-                    currentSourceName = sourceName;
-                }
-
-                if (sourceName == currentSourceName) {
-                    ImGui::SetItemDefaultFocus();
-                }
-            }
-
-            ImGui::EndCombo();
-        }
+        SourceCombo("Camera Sources", currentSourceName, m_source.get());
     }
     
     ImGui::SliderInt("Char Size", &m_charSize, 8, 32, "%d", ImGuiSliderFlags_AlwaysClamp);
@@ -167,6 +124,8 @@ void App::RunLogic() {
         { m_charColor[0], m_charColor[1], m_charColor[2], m_charColor[3] },
         Epsilon, Phi, Sigma, k, p
     );
-    SpoutOutTex outputTex = m_ascii.Draw(m_spoutSource.GetID());
+    outputTex = m_ascii.Draw(m_spoutSource.GetID());
+    //test->SendTexture(outputTex.id, 1920, 1084);
     m_sender->SendTexture(outputTex.id, GL_TEXTURE_2D, outputTex.w, outputTex.h);
+
 }

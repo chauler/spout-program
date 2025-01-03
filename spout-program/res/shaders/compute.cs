@@ -37,7 +37,7 @@ void main()
             edgeTotals[edges[i]] += 1;
             avgLum += luminance[i];
         }
-        avgLum = avgLum / {local_size_x}*{local_size_y};
+        avgLum = avgLum / ({local_size_x}*{local_size_y}); //Must use parentheses around the denominator
         uint edge = 1;
         //if (edgeTotals[1] >= edgeTotals[edge])
         //{
@@ -85,6 +85,13 @@ void main()
         {
             color = uvec4(0);
         }
+        if(gl_WorkGroupID.y == gl_NumWorkGroups.y)
+        {
+            imageStore(imgOutput, ivec2(int(gl_WorkGroupID.x), int(gl_WorkGroupID.y)), uvec4(3, color.yzw));
+        }
+        else
+        {
         imageStore(imgOutput, ivec2(int(gl_WorkGroupID.x), int(gl_WorkGroupID.y)), color);
+        }
     }
 }

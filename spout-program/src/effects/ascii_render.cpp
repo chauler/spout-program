@@ -209,8 +209,8 @@ void ascii_render::UpdateImage(unsigned int imageID) {
 	if (cols != m_prevDimensions.x || rows != m_prevDimensions.y) {
 		m_prevDimensions.x = cols;
 		m_prevDimensions.y = rows;
-		unsigned int outCols = cols / m_charSize;
-		unsigned int outRows = rows / m_charSize;
+		unsigned int outCols = ceil(cols / m_charSize);
+		unsigned int outRows = ceil(rows / m_charSize);
 		if (m_positions != nullptr) {
 			delete(m_positions);
 		}

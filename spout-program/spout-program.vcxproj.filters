@@ -87,6 +87,9 @@
     <ClCompile Include="src\outputs\IOutput.h">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\outputs\SpoutSender.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\vendor\imgui\imconfig.h">
@@ -156,6 +159,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\outputs\VirtualCamera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\outputs\SpoutSender.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

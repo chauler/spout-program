@@ -178,6 +178,7 @@
     <ClCompile Include="src\FontLoader.cpp" />
     <ClCompile Include="src\gui\SourceCombo.cpp" />
     <ClCompile Include="src\outputs\IOutput.h" />
+    <ClCompile Include="src\outputs\SpoutSender.cpp" />
     <ClCompile Include="src\outputs\VirtualCamera.cpp" />
     <ClCompile Include="src\Quad.cpp" />
     <ClCompile Include="src\sources\CamSource.cpp" />
@@ -203,6 +204,7 @@
     <ClInclude Include="src\effects\ascii_render.h" />
     <ClInclude Include="src\FontLoader.h" />
     <ClInclude Include="src\gui\SourceCombo.h" />
+    <ClInclude Include="src\outputs\SpoutSender.h" />
     <ClInclude Include="src\outputs\VirtualCamera.h" />
     <ClInclude Include="src\Quad.h" />
     <ClInclude Include="src\Renderer.h" />

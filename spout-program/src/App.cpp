@@ -13,24 +13,27 @@
 #include "sources/CamSource.h"
 #include "outputs/VirtualCamera.h"
 #include "gui/SourceCombo.h"
+#include <outputs\SpoutSender.h>
 
 void IconifyCallback(GLFWwindow* window, int iconified) {
-    std::cout << iconified << std::endl;
     App::SetIconified(iconified);
 }
 
-App::App(GLFWwindow* window): m_window(window), m_ImGuiIO(ImGui::GetIO()), m_ascii() {
+App::App(GLFWwindow* window): 
+    m_window(window),
+    m_ImGuiIO(ImGui::GetIO()),
+    m_ascii(),
+    m_source(nullptr),
+    m_sender(nullptr),
+    m_sourceType(SourceType::None),
+    m_outputType(OutputType::None) 
+{
     glfwSetWindowIconifyCallback(window, IconifyCallback);
-    m_source = nullptr;
-    m_sender = GetSpout();
-    m_sender->SetSenderName("Spout Effects");
     m_spoutSource.Allocate(GL_RGBA, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE,  0);
     m_spoutSource.SetParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     m_spoutSource.SetParameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     m_spoutSource.SetParameter(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     m_spoutSource.SetParameter(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-    test = new VirtualCamera("");
 }
 
 void App::DrawGUI() {
@@ -51,29 +54,29 @@ void App::DrawGUI() {
     
     ImGui::Begin("Options", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
     
+    ImGui::Text("Inputs");
+    ImGui::Dummy(ImVec2(0.0f, 5.0f));
     //Selectable returns true if clicked that frame. Filter for only when *changing* selection
-    if (ImGui::Selectable("Spout", sourceType == SourceType::SpoutSource) && sourceType != SourceType::SpoutSource) {
-        sourceType = SourceType::SpoutSource;
+    if (ImGui::Selectable("Spout##Input", m_sourceType == SourceType::Spout) && m_sourceType != SourceType::Spout) {
+        m_sourceType = SourceType::Spout;
         currentSourceName = "";
         m_source = std::make_unique<SpoutSource>(currentSourceName);
     }
 
-    if (sourceType == SourceType::SpoutSource) {
+    if (m_sourceType == SourceType::Spout) {
         SourceCombo("Spout Sources", currentSourceName, m_source.get());
     }
 
-    ImGui::Dummy(ImVec2(0.0f, 10.0f));
-
-    if (ImGui::Selectable("Cam", sourceType == SourceType::CamSource)) {
-        if (sourceType != SourceType::CamSource) {
+    if (ImGui::Selectable("Webcam", m_sourceType == SourceType::Webcam)) {
+        if (m_sourceType != SourceType::Webcam) {
             ImGui::OpenPopup("Warning");
-            sourceType = SourceType::CamSource;
+            m_sourceType = SourceType::Webcam;
             currentSourceName = "";
             m_source = std::make_unique<CamSource>();
         }
     }
 
-    if (sourceType == SourceType::CamSource) {
+    if (m_sourceType == SourceType::Webcam) {
         if (ImGui::BeginPopupModal("Warning", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
             ImGui::Text("Camera support is experimental - your webcam may not work properly.");
             if (ImGui::Button("OK", ImVec2(120, 0))) {
@@ -84,9 +87,25 @@ void App::DrawGUI() {
         SourceCombo("Camera Sources", currentSourceName, m_source.get());
     }
     
+    ImGui::Dummy(ImVec2(0.0f, 40.0f));
+
+    ImGui::Text("Outputs");
+    ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+    if (ImGui::Selectable("Spout##Output", m_outputType == OutputType::Spout) && m_outputType != OutputType::Spout) {
+        m_outputType = OutputType::Spout;
+        m_sender = std::make_unique<SpoutEffects::SpoutSender>("Spout Effects");
+    }
+
+    if (ImGui::Selectable("Virtual Camera", m_outputType == OutputType::VirtualCam) && m_outputType != OutputType::VirtualCam) {
+        m_outputType = OutputType::VirtualCam;
+        m_sender = std::make_unique<SpoutEffects::VirtualCamera>("Spout Effects");
+    }
+
     ImGui::SliderInt("Char Size", &m_charSize, 8, 32, "%d", ImGuiSliderFlags_AlwaysClamp);
-    ImGui::ColorPicker4("Background Color", m_bgColor, ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_Float);
-    ImGui::ColorPicker4("Character Color", m_charColor, ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_Float);
+
+    ImGui::Dummy(ImVec2(0.0f, 40.0f));
+    ImGui::Text("Edge Detection Parameters");
     ImGui::SliderFloat("Epsilon", &Epsilon, 0.0f, 0.5f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
     ImGui::SliderFloat("Phi", &Phi, 100.0f, 500.0f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
     ImGui::SliderFloat("Sigma", &Sigma, 0.0f, 1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
@@ -115,17 +134,18 @@ void App::DrawGUI() {
 
 void App::RunLogic() {
     ZoneScoped;
-    if (!m_source) {
+    if (!m_source || !m_sender) {
         return;
     }
+
     m_source->GetNextFrame(m_spoutSource.GetID(), GL_TEXTURE_2D);
+    
     m_ascii.UpdateState(m_charSize, 16,
-        { m_bgColor[0], m_bgColor[1], m_bgColor[2], m_bgColor[3] },
-        { m_charColor[0], m_charColor[1], m_charColor[2], m_charColor[3] },
+        { 0.0, 0.0, 0.0, 0.0 },
+        { 0.0, 0.0, 0.0, 0.0 },
         Epsilon, Phi, Sigma, k, p
     );
     outputTex = m_ascii.Draw(m_spoutSource.GetID());
-    //test->SendTexture(outputTex.id, 1920, 1084);
-    m_sender->SendTexture(outputTex.id, GL_TEXTURE_2D, outputTex.w, outputTex.h);
 
+    m_sender->SendTexture(outputTex.id, outputTex.w, outputTex.h);
 }

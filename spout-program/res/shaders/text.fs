@@ -26,10 +26,10 @@ void main()
     //If pixel is an edge
     if(edgeSample.x != 4) {
         sampled = vec4(1.0, 1.0, 1.0, texture(edgeArray, vec3(TexCoords, edgeSample.x)).r);
-        color = vec4(1.0, 1.0, 1.0, 1.0) * sampled;
+        color = sampledTemp * sampled;
     } else {
         sampled = vec4(1.0, 1.0, 1.0, texture(textArray, vec3(TexCoords, edgeSample.w / numChars)).r);
-        color = vec4(1.0, 1.0, 1.0, 1.0) * sampled;
+        color = sampledTemp * sampled;
     }
     //This is legacy, old feature that probably isn't useful
     if(edgeSample.w / numChars > 0.1 && sampled.w == 0.0) {

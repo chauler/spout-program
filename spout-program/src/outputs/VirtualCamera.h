@@ -15,5 +15,6 @@ namespace SpoutEffects {
 		scCamera m_camera;
 		std::vector<unsigned char> m_data;
 		std::vector<unsigned char> m_convertedData;
+		int m_w = 0, m_h = 0;
 	};
 }

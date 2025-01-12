@@ -3,9 +3,11 @@
 #include "SpoutGL/SpoutCopy.h"
 
 SpoutEffects::VirtualCamera::VirtualCamera(std::string name) : 
-    m_camera(scCreateCamera(1920, 1084, 60)),
-    m_data(1920* 1084 *4),
-    m_convertedData(1920* 1084 *3)
+    m_w(4),
+    m_h(4),
+    m_camera(scCreateCamera(m_w, m_h, 60)),
+    m_data(m_w * m_h * 4),
+    m_convertedData(m_w* m_h * 3)
 {
     if (!m_camera)
     {
@@ -19,12 +21,30 @@ SpoutEffects::VirtualCamera::~VirtualCamera() {
 }
 
 void SpoutEffects::VirtualCamera::SendTexture(unsigned int id, unsigned int width, unsigned int height) {
-    
+    int real_w = 0, real_h = 0, row_padding = 0, col_padding = 0;
+    GLCall(glGetTextureLevelParameteriv(id, 0, GL_TEXTURE_WIDTH, &real_w));
+    GLCall(glGetTextureLevelParameteriv(id, 0, GL_TEXTURE_HEIGHT, &real_h));
+    real_w = (real_w + 3) & ~0x03;
+    real_h = (real_h + 3) & ~0x03;
+    GLCall(glPixelStorei(GL_PACK_ALIGNMENT, 4));
+    GLCall(glPixelStorei(GL_PACK_ROW_LENGTH, real_w));
+    row_padding = real_w - width;
+    col_padding = real_h - height;
+
+    if (m_w != real_w || m_h != real_h) {
+        scDeleteCamera(m_camera);
+        m_w = real_w;
+        m_h = real_h;
+        m_camera = scCreateCamera(m_w, m_h, 60);
+        m_data = std::vector<unsigned char>(m_w * m_h * 4);
+        m_convertedData = std::vector<unsigned char>(m_w * m_h * 3);
+    }
+
     GLCall(glBindTexture(GL_TEXTURE_2D, id));
     GLCall(glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_data.data()));
     GLCall(glBindTexture(GL_TEXTURE_2D, 0));
     spoutCopy copier{};
-    copier.rgba2bgr(m_data.data(), m_convertedData.data(), width, height, true);
+    copier.rgba2bgr(m_data.data(), m_convertedData.data(), real_w, real_h, true);
 
     scSendFrame(m_camera, m_convertedData.data());
 }

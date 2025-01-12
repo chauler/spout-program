@@ -45,11 +45,11 @@ void App::DrawGUI() {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
-    ImGui::ShowDemoWindow();
+    //ImGui::ShowDemoWindow();
 
     int window_w, window_h;
     glfwGetWindowSize(m_window, &window_w, &window_h);
-    ImGui::SetNextWindowPos(ImVec2());
+    ImGui::SetNextWindowPos(ImVec2(0, 0));
     ImGui::SetNextWindowSize(ImVec2(window_w / 5, window_h));
     
     ImGui::Begin("Options", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
@@ -113,14 +113,20 @@ void App::DrawGUI() {
     ImGui::SliderFloat("p", &p, 0.0f, 1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
     ImGui::End();
 
-    if (m_source) {
+    if (m_source && m_sender) {
         ImGui::SetNextWindowPos(ImVec2(window_w / 5, 0));
-        ImGui::SetNextWindowSize(ImVec2(m_source->GetWidth(), m_source->GetHeight()));
-        ImGui::Begin("Spout Feed", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_HorizontalScrollbar);
+        ImGui::SetNextWindowSize(ImVec2(ImGui::GetContentRegionAvail()), ImGuiCond_Once);
+        ImGui::Begin("Spout Feed", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
         ImGui::Text("size = %d x %d \t | \t %.3f ms/frame (%.1f FPS)", m_source->GetWidth(), m_source->GetHeight(), 1000.0f / m_ImGuiIO.Framerate, m_ImGuiIO.Framerate);
-        ImGui::Image((void*)(intptr_t)m_spoutSource.GetID(), ImVec2(m_source->GetWidth(), m_source->GetHeight()));
+        auto contentSpace = ImGui::GetContentRegionAvail();
+        auto initialCursorPos = ImGui::GetCursorPos();
+        ImGui::Image((void*)(intptr_t)m_spoutSource.GetID(), ImVec2(contentSpace.x/2, contentSpace.y));
+        ImGui::SetCursorPos(ImVec2(initialCursorPos.x+ contentSpace.x / 2, initialCursorPos.y));
+        ImGui::Image((void*)(intptr_t)outputTex.id, ImVec2(contentSpace.x / 2, contentSpace.y));
         ImGui::End();
     }
+
+    //ImGui::ShowMetricsWindow();
 
     ImGui::Render();
     int display_w, display_h;

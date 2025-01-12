@@ -103,7 +103,8 @@
       <AdditionalLibraryDirectories>$(SolutionDir)dependencies\spout;$(SolutionDir)dependencies\GLFW\lib;$(SolutionDir)dependencies\GLEW\lib\Release\x64;$(SolutionDir)dependencies\freetype;$(SolutionDir)dependencies\spout\;$(SolutionDir)dependencies\softcam\</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /d /y "$(ProjectDir)dlls\*.*" "$(OutDir)"</Command>
+      <Command>xcopy /d /y "$(ProjectDir)dlls\*.*" "$(OutDir)"
+xcopy /S /Y /I "$(ProjectDir)res\" "$(OutDir)res"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -126,7 +127,8 @@
       <AdditionalLibraryDirectories>$(SolutionDir)dependencies\spout;$(SolutionDir)dependencies\GLFW\lib;$(SolutionDir)dependencies\GLEW\lib\Release\x64;$(SolutionDir)dependencies\freetype;$(SolutionDir)dependencies\spout\;$(SolutionDir)dependencies\softcam\</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /d /y "$(ProjectDir)dlls\*.*" "$(OutDir)"</Command>
+      <Command>xcopy /d /y "$(ProjectDir)dlls\*.*" "$(OutDir)"
+xcopy /S /Y /I "$(ProjectDir)res\" "$(OutDir)res"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -146,7 +148,8 @@
       <AdditionalLibraryDirectories>$(SolutionDir)dependencies\spout;$(SolutionDir)dependencies\GLFW\lib;$(SolutionDir)dependencies\GLEW\lib\Release\x64;$(SolutionDir)dependencies\freetype;$(SolutionDir)dependencies\spout\;$(SolutionDir)dependencies\softcam\</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /d /y "$(ProjectDir)dlls\*.*" "$(OutDir)"</Command>
+      <Command>xcopy /d /y "$(ProjectDir)dlls\*.*" "$(OutDir)"
+xcopy /S /Y /I "$(ProjectDir)res\" "$(OutDir)res"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -169,7 +172,8 @@
       <AdditionalLibraryDirectories>$(SolutionDir)dependencies\spout;$(SolutionDir)dependencies\GLFW\lib;$(SolutionDir)dependencies\GLEW\lib\Release\x64;$(SolutionDir)dependencies\freetype;$(SolutionDir)dependencies\spout\;$(SolutionDir)dependencies\softcam\</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /d /y "$(ProjectDir)dlls\*.*" "$(OutDir)"</Command>
+      <Command>xcopy /d /y "$(ProjectDir)dlls\*.*" "$(OutDir)"
+xcopy /S /Y /I "$(ProjectDir)res\" "$(OutDir)res"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

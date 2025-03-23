@@ -12,6 +12,7 @@
 #include "escapi\escapi.h"
 #include "App.h"
 #include "tracy/public/tracy/Tracy.hpp"
+#include <Renderer.h>
 
 static void glfw_error_callback(int error, const char* description)
 {
@@ -57,7 +58,7 @@ int main(int, char**)
         std::cout<<"Error!"<<std::endl;
     }
     glfwSwapInterval(1); // Enable vsync
-    GLCall(glPixelStorei(GL_UNPACK_ALIGNMENT, 1););
+    GLCall(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();

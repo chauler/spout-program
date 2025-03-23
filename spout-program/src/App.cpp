@@ -13,7 +13,8 @@
 #include "sources/CamSource.h"
 #include "outputs/VirtualCamera.h"
 #include "gui/SourceCombo.h"
-#include <outputs\SpoutSender.h>
+#include <outputs/SpoutSender.h>
+#include "effects/ascii_render.h"
 
 void IconifyCallback(GLFWwindow* window, int iconified) {
     App::SetIconified(iconified);
@@ -22,7 +23,7 @@ void IconifyCallback(GLFWwindow* window, int iconified) {
 App::App(GLFWwindow* window): 
     m_window(window),
     m_ImGuiIO(ImGui::GetIO()),
-    m_ascii(),
+    m_effects(std::vector<IEffect*>{/*new ascii_render()*/}),
     m_source(nullptr),
     m_sender(nullptr),
     m_sourceType(SourceType::None),
@@ -45,7 +46,7 @@ void App::DrawGUI() {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
-    //ImGui::ShowDemoWindow();
+    ImGui::ShowDemoWindow();
 
     int window_w, window_h;
     glfwGetWindowSize(m_window, &window_w, &window_h);
@@ -89,6 +90,27 @@ void App::DrawGUI() {
     
     ImGui::Dummy(ImVec2(0.0f, 40.0f));
 
+    ImGui::Text("Effects");
+    ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+    if (ImGui::Checkbox("ASCII", &asciiEnabled)) {
+        if (asciiEnabled) {
+            m_effects.push_back(new ascii_render());
+        }
+        else {
+            //Remove ascii_render from list of effects
+            m_effects.erase(std::remove_if(m_effects.begin(), m_effects.end(), 
+                [](IEffect* effect) {
+                    return dynamic_cast<ascii_render*>(effect) != nullptr;}), 
+                    m_effects.end());
+        }
+    }
+    
+    for (const auto& effect : m_effects) {
+        effect->DisplayGUIComponent();
+    }
+
+    ImGui::Dummy(ImVec2(0.0f, 40.0f));
     ImGui::Text("Outputs");
     ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
@@ -102,15 +124,6 @@ void App::DrawGUI() {
         m_sender = std::make_unique<SpoutEffects::VirtualCamera>("Spout Effects");
     }
 
-    ImGui::SliderInt("Char Size", &m_charSize, 8, 32, "%d", ImGuiSliderFlags_AlwaysClamp);
-
-    ImGui::Dummy(ImVec2(0.0f, 40.0f));
-    ImGui::Text("Edge Detection Parameters");
-    ImGui::SliderFloat("Epsilon", &Epsilon, 0.0f, 0.5f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
-    ImGui::SliderFloat("Phi", &Phi, 100.0f, 500.0f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
-    ImGui::SliderFloat("Sigma", &Sigma, 0.0f, 1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
-    ImGui::SliderFloat("k", &k, 0.0f, 3.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
-    ImGui::SliderFloat("p", &p, 0.0f, 1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
     ImGui::End();
 
     if (m_source && m_sender) {
@@ -125,8 +138,6 @@ void App::DrawGUI() {
         ImGui::Image((void*)(intptr_t)outputTex.id, ImVec2(contentSpace.x / 2, contentSpace.y));
         ImGui::End();
     }
-
-    //ImGui::ShowMetricsWindow();
 
     ImGui::Render();
     int display_w, display_h;
@@ -146,12 +157,11 @@ void App::RunLogic() {
 
     m_source->GetNextFrame(m_spoutSource.GetID(), GL_TEXTURE_2D);
     
-    m_ascii.UpdateState(m_charSize, 16,
-        { 0.0, 0.0, 0.0, 0.0 },
-        { 0.0, 0.0, 0.0, 0.0 },
-        Epsilon, Phi, Sigma, k, p
-    );
-    outputTex = m_ascii.Draw(m_spoutSource.GetID());
+    
+    outputTex.id = m_spoutSource.GetID();
+    for (const auto& effect : m_effects) {
+        outputTex = effect->Draw(outputTex.id);
+    }
 
     m_sender->SendTexture(outputTex.id, outputTex.w, outputTex.h);
 }

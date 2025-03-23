@@ -8,15 +8,31 @@
 #include "imgui/imgui_impl_opengl3.h"
 #include "tracy/public/tracy/Tracy.hpp"
 #include <regex>
+#include "imgui/imgui.h"
 
 std::string ParseComputeShader(std::string&& input, unsigned int x, unsigned int y, unsigned int z);
 
-ascii_render::ascii_render() : m_charSize(10), m_numChars(16), m_charset(m_charSets[m_numChars]), m_fullscreenQuad(Quad()), m_prevDimensions({0, 0}) {
+ascii_render::ascii_render() : 
+	m_fullscreenQuad(Quad()), 
+	m_prevDimensions({ 0, 0 }), 
+	m_config({
+		.charSize{10},
+		.numChars{16},
+		.bgColor{0.0, 0.0, 0.0, 0.0},
+		.charColor{1.0, 1.0, 1.0, 1.0},
+		.epsilon{0.015},
+		.phi{200.0},
+		.sigma{0.083},
+		.k{2.26},
+		.p{1.00}
+		}),
+	m_charset(m_charSets[m_config.numChars]) 
+{
 	fontLoader.LoadFace("res/fonts/Roboto-Regular.ttf");
 	m_face = fontLoader.GetFace();
-	LoadCharacterData(m_charSize);
+	LoadCharacterData(m_config.charSize);
 
-	std::string computeShaderSource = ParseComputeShader(ReadFile("res/shaders/compute.cs"), m_charSize, m_charSize, 1);
+	std::string computeShaderSource = ParseComputeShader(ReadFile("res/shaders/compute.cs"), m_config.charSize, m_config.charSize, 1);
 
 	computeShader.AddShader(GL_COMPUTE_SHADER, computeShaderSource);
 	computeShader.CompileShader();
@@ -38,9 +54,9 @@ ascii_render::ascii_render() : m_charSize(10), m_numChars(16), m_charset(m_charS
 	shader.AddShader(GL_FRAGMENT_SHADER, ReadFile("res/shaders/text.fs"));
 	shader.CompileShader();
 	shader.Bind();
-	GLCall(glUniform4f(shader.GetUniform("bgColor"), m_bgColor[0], m_bgColor[1], m_bgColor[2], m_bgColor[3]));
-	GLCall(glUniform4f(shader.GetUniform("charColor"), m_charColor[0], m_charColor[1], m_charColor[2], m_charColor[3]));
-	GLCall(glUniform1i(shader.GetUniform("charSize"), m_charSize));
+	GLCall(glUniform4f(shader.GetUniform("bgColor"), m_config.bgColor[0], m_config.bgColor[1], m_config.bgColor[2], m_config.bgColor[3]));
+	GLCall(glUniform4f(shader.GetUniform("charColor"), m_config.charColor[0], m_config.charColor[1], m_config.charColor[2], m_config.charColor[3]));
+	GLCall(glUniform1i(shader.GetUniform("charSize"), m_config.charSize));
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	shader.Unbind();
@@ -144,7 +160,7 @@ SpoutOutTex ascii_render::Draw(unsigned int imageID) {
 
 	//This buffer contains the layer each position will sample its texture from
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_iVBO));
-	GLCall(glBufferData(GL_ARRAY_BUFFER, (rows / m_charSize) * (cols / m_charSize) * sizeof(InstanceData), m_positions, GL_DYNAMIC_DRAW));
+	GLCall(glBufferData(GL_ARRAY_BUFFER, (rows / m_config.charSize) * (cols / m_config.charSize) * sizeof(InstanceData), m_positions, GL_DYNAMIC_DRAW));
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_intermediateFBO));
@@ -174,14 +190,14 @@ SpoutOutTex ascii_render::Draw(unsigned int imageID) {
 	computeShader.Bind();
 	GLCall(glBindImageTexture(0, m_computeShaderOutput, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8UI));
 	GLCall(glBindImageTexture(1, m_intermediate2, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8UI));
-	GLCall(glDispatchCompute(ceil(cols / m_charSize), ceil(rows / m_charSize), 1));
+	GLCall(glDispatchCompute(ceil(cols / m_config.charSize), ceil(rows / m_config.charSize), 1));
 	GLCall(glMemoryBarrier(GL_ALL_BARRIER_BITS));
 
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_FBO));
 	GLCall(glViewport(0, 0, m_outputW, m_outputH));
 	shader.Bind();
-	GLCall(glUniform2f(shader.GetUniform("imgDims"), ceil(cols / m_charSize), ceil(rows / m_charSize)));
-	GLCall(glUniform1i(shader.GetUniform("numChars"), m_numChars));
+	GLCall(glUniform2f(shader.GetUniform("imgDims"), ceil(cols / m_config.charSize), ceil(rows / m_config.charSize)));
+	GLCall(glUniform1i(shader.GetUniform("numChars"), m_config.numChars));
 	GLCall(glBindVertexArray(m_VAO));
 	glClear(GL_COLOR_BUFFER_BIT);
 	GLCall(glActiveTexture(GL_TEXTURE0));
@@ -192,7 +208,7 @@ SpoutOutTex ascii_render::Draw(unsigned int imageID) {
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_computeShaderOutput));
 	GLCall(glActiveTexture(GL_TEXTURE3));
 	GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, m_edgeArray));
-	GLCall(glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, cols / m_charSize * rows / m_charSize));
+	GLCall(glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, cols / m_config.charSize * rows / m_config.charSize));
 	GLCall(glBindVertexArray(0));
 	shader.Unbind();
 	GLCall(glBindTexture(GL_TEXTURE_2D, 0));
@@ -217,10 +233,10 @@ void ascii_render::UpdateImage(unsigned int imageID) {
 	if (cols != m_prevDimensions.x || rows != m_prevDimensions.y) {
 		m_prevDimensions.x = cols;
 		m_prevDimensions.y = rows;
-		unsigned int outCols = cols / m_charSize;
-		unsigned int outRows = rows / m_charSize;
-		unsigned int leftoverX = cols % m_charSize;
-		unsigned int leftoverY = rows % m_charSize;
+		unsigned int outCols = cols / m_config.charSize;
+		unsigned int outRows = rows / m_config.charSize;
+		unsigned int leftoverX = cols % m_config.charSize;
+		unsigned int leftoverY = rows % m_config.charSize;
 		m_outputW = cols - leftoverX;
 		m_outputH = rows - leftoverY;
 		if (m_positions != nullptr) {
@@ -252,51 +268,114 @@ void ascii_render::UpdateImage(unsigned int imageID) {
 	GLCall(glActiveTexture(GL_TEXTURE0));
 }
 
-void ascii_render::UpdateState(int charSize, int numChars, glm::vec4 bgColor, glm::vec4 charColor, float Epsilon, float Phi, float Sigma, float k, float p) {
+void ascii_render::UpdateState(const std::any& input) {
 	ZoneScoped;
-
-	if (bgColor != m_bgColor) {
-		m_bgColor = bgColor;
-		GLCall(glProgramUniform4f(shader.GetProgram(), shader.GetUniform("bgColor"), m_bgColor[0], m_bgColor[1], m_bgColor[2], m_bgColor[3]));
+	AsciiRenderState state;
+	try {
+		state = std::any_cast<AsciiRenderState>(input);
+	}
+	catch(const std::bad_any_cast& e) {
+		std::cout << "Invalid state for AsciiRender; continuing previous state.\n";
+		return;
 	}
 
-	if (charColor != m_charColor) {
-		m_charColor = charColor;
-		GLCall(glProgramUniform4f(shader.GetProgram(), shader.GetUniform("charColor"), m_charColor[0], m_charColor[1], m_charColor[2], m_charColor[3]));
+	if (state.bgColor != m_config.bgColor) {
+		m_config.bgColor = state.bgColor;
+		GLCall(glProgramUniform4f(shader.GetProgram(), shader.GetUniform("bgColor"), m_config.bgColor[0], m_config.bgColor[1], m_config.bgColor[2], m_config.bgColor[3]));
 	}
 
-	if (charSize != m_charSize) {
-		m_charSize = charSize;
-		GLCall(glProgramUniform1i(shader.GetProgram(), shader.GetUniform("charSize"), charSize));
-		std::string computeShaderSource = ParseComputeShader(ReadFile("res/shaders/compute.cs"), charSize, charSize, 1);
+	if (state.charColor != m_config.charColor) {
+		m_config.charColor = state.charColor;
+		GLCall(glProgramUniform4f(shader.GetProgram(), shader.GetUniform("charColor"), m_config.charColor[0], m_config.charColor[1], m_config.charColor[2], m_config.charColor[3]));
+	}
+
+	if (state.charSize != m_config.charSize) {
+		m_config.charSize = state.charSize;
+		GLCall(glProgramUniform1i(shader.GetProgram(), shader.GetUniform("charSize"), m_config.charSize));
+		std::string computeShaderSource = ParseComputeShader(ReadFile("res/shaders/compute.cs"), m_config.charSize, m_config.charSize, 1);
 		Shader temp = Shader();
 		temp.AddShader(GL_COMPUTE_SHADER, computeShaderSource);
 		temp.CompileShader();
 		computeShader = std::move(temp);
-		LoadCharacterData(charSize);
+		LoadCharacterData(m_config.charSize);
 		//TODO: MAKE A BETTER SOLUTION.
 		//Need to reallocate m_positions and m_computeShaderOutput when charSize changes, but we can't know 
 		//if charSize changes within UpdateImage(), where we currently reallocate. This prompts reallocation.
 		m_prevDimensions.x = 0;
 	}
 
-	if (numChars != m_numChars) {
+	if (state.numChars != m_config.numChars) {
 		try {
-			m_charset = m_charSets.at(m_numChars);
-			m_numChars = numChars;
-			GLCall(glProgramUniform1f(shader.GetProgram(), shader.GetUniform("numChars"), numChars));
-			LoadCharacterData(m_charSize);
+			m_config.numChars = state.numChars;
+			m_charset = m_charSets.at(m_config.numChars);
+			GLCall(glProgramUniform1f(shader.GetProgram(), shader.GetUniform("numChars"), m_config.numChars));
+			LoadCharacterData(m_config.charSize);
 		}
 		catch (const std::out_of_range& e) {
 			
 		}
 	}
 
-	GLCall(glProgramUniform1f(dGaussianShader.GetProgram(), dGaussianShader.GetUniform("Epsilon"), Epsilon));
-	GLCall(glProgramUniform1f(dGaussianShader.GetProgram(), dGaussianShader.GetUniform("Phi"), Phi));
-	GLCall(glProgramUniform1f(dGaussianShader.GetProgram(), dGaussianShader.GetUniform("Sigma"), Sigma));
-	GLCall(glProgramUniform1f(dGaussianShader.GetProgram(), dGaussianShader.GetUniform("k"), k));
-	GLCall(glProgramUniform1f(dGaussianShader.GetProgram(), dGaussianShader.GetUniform("p"), p));
+	GLCall(glProgramUniform1f(dGaussianShader.GetProgram(), dGaussianShader.GetUniform("Epsilon"), state.epsilon));
+	GLCall(glProgramUniform1f(dGaussianShader.GetProgram(), dGaussianShader.GetUniform("Phi"), state.phi));
+	GLCall(glProgramUniform1f(dGaussianShader.GetProgram(), dGaussianShader.GetUniform("Sigma"), state.sigma));
+	GLCall(glProgramUniform1f(dGaussianShader.GetProgram(), dGaussianShader.GetUniform("k"), state.k));
+	GLCall(glProgramUniform1f(dGaussianShader.GetProgram(), dGaussianShader.GetUniform("p"), state.p));
+}
+
+void ascii_render::DisplayGUIComponent() {
+	const unsigned int min = 8;
+	const unsigned int max = 32;
+	if (ImGui::SliderScalar("Char Size", ImGuiDataType_U32, &m_config.charSize, &min, &max, "%d", ImGuiSliderFlags_AlwaysClamp)) {
+		GLCall(glProgramUniform1i(shader.GetProgram(), shader.GetUniform("charSize"), m_config.charSize));
+		std::string computeShaderSource = ParseComputeShader(ReadFile("res/shaders/compute.cs"), m_config.charSize, m_config.charSize, 1);
+		Shader temp = Shader();
+		temp.AddShader(GL_COMPUTE_SHADER, computeShaderSource);
+		temp.CompileShader();
+		computeShader = std::move(temp);
+		LoadCharacterData(m_config.charSize);
+		//TODO: MAKE A BETTER SOLUTION.
+		//Need to reallocate m_positions and m_computeShaderOutput when charSize changes, but we can't know 
+		//if charSize changes within UpdateImage(), where we currently reallocate. This prompts reallocation.
+		m_prevDimensions.x = 0;
+	}
+	
+	ImGui::Dummy(ImVec2(0.0f, 10.0f));
+
+	const auto updateCharset = [this]() {
+		m_charset = m_charSets.at(m_config.numChars);
+		GLCall(glProgramUniform1i(shader.GetProgram(), shader.GetUniform("numChars"), m_config.numChars));
+		LoadCharacterData(m_config.charSize);
+		};
+
+	if (ImGui::RadioButton("8 Characters", &m_config.numChars, 8)) {
+		updateCharset();
+	}
+	if (ImGui::RadioButton("16 Characters", &m_config.numChars, 16)) {
+		updateCharset();
+	}
+	if (ImGui::RadioButton("32 Characters", &m_config.numChars, 32)) {
+		updateCharset();
+	}
+
+	ImGui::Dummy(ImVec2(0.0f, 10.0f));
+
+	ImGui::Text("Edge Detection Parameters");
+	if (ImGui::SliderFloat("Epsilon", &m_config.epsilon, 0.0f, 0.5f, "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
+		GLCall(glProgramUniform1f(dGaussianShader.GetProgram(), dGaussianShader.GetUniform("Epsilon"), m_config.epsilon));
+	}
+	if (ImGui::SliderFloat("Phi", &m_config.phi, 100.0f, 500.0f, "%.1f", ImGuiSliderFlags_AlwaysClamp)) {
+		GLCall(glProgramUniform1f(dGaussianShader.GetProgram(), dGaussianShader.GetUniform("Phi"), m_config.phi));
+	}
+	if (ImGui::SliderFloat("Sigma", &m_config.sigma, 0.0f, 1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
+		GLCall(glProgramUniform1f(dGaussianShader.GetProgram(), dGaussianShader.GetUniform("Sigma"), m_config.sigma));
+	}
+	if (ImGui::SliderFloat("k", &m_config.k, 0.0f, 3.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp)) {
+		GLCall(glProgramUniform1f(dGaussianShader.GetProgram(), dGaussianShader.GetUniform("k"), m_config.k));
+	}
+	if (ImGui::SliderFloat("p", &m_config.p, 0.0f, 1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
+		GLCall(glProgramUniform1f(dGaussianShader.GetProgram(), dGaussianShader.GetUniform("p"), m_config.p));
+	}
 }
 
 void ascii_render::LoadCharacterData(int textSize) {

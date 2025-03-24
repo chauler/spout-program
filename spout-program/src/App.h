@@ -35,4 +35,5 @@ private:
 	bool popupOpen = false;
 	SpoutOutTex outputTex{};
 	bool asciiEnabled = false;
+	bool edgesEnabled = false;
 };

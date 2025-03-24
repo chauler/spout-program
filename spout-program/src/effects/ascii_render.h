@@ -14,6 +14,7 @@
 #include "glm/gtc/type_ptr.hpp"
 #include <Quad.h>
 #include "effects/IEffect.h"
+#include "util/types.h"
 #include FT_FREETYPE_H
 
 struct GenericGlyphData {
@@ -26,11 +27,6 @@ struct InstanceData {
 	float row;
 	float column;
 	float texArrayIndex;
-};
-
-struct iVec2 {
-	int x;
-	int y;
 };
 
 struct AsciiRenderState {
@@ -49,10 +45,10 @@ class ascii_render : public IEffect {
 public:
 	ascii_render();
 	SpoutOutTex Draw(unsigned int);
-	void UpdateImage(unsigned int);
 	void UpdateState(const std::any& state) override;
 	void DisplayGUIComponent() override;
 private:
+	void UpdateImage(unsigned int);
 	void LoadCharacterData(int = 100);
 	Shader shader, computeShader, sobelShader, dGaussianShader, screenRenderShader;
 	unsigned int m_computeShaderOutput = 0;
@@ -60,7 +56,7 @@ private:
 	iVec2 m_prevDimensions;
 	FT_Face m_face;
 	unsigned int m_VBO = 0, m_VAO = 0, m_EBO = 0, m_iVBO = 0, m_iVBO2 = 0, m_edgeArray = 0,
-		m_FBO = 0, m_outTex = 0, m_textArray = 0, m_inputTex = 0, m_intermediate = 0, m_intermediateFBO = 0, m_intermediate2 = 0, m_intermediateFBO2 = 0;
+		m_FBO = 0, m_outTex = 0, m_textArray = 0, m_intermediate = 0, m_intermediateFBO = 0, m_intermediate2 = 0, m_intermediateFBO2 = 0;
 	GenericGlyphData m_vertices[4] = {
 		{0.0f,  1.0f, 15.0f},
 		{0.0f, 0.0f, 15.0f},

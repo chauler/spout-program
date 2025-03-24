@@ -43,3 +43,12 @@ void Texture2D::GetPixelData(unsigned char* data) const
 	GLCall(glGetTexImage(GL_TEXTURE_2D, 0, m_format, m_type, data));
 	Unbind();
 }
+
+uVec2 Texture2D::GetDimensions() const {
+	uVec2 dims{0, 0};
+	GLCall(glBindTexture(GL_TEXTURE_2D, m_id));
+	GLCall(glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, (GLint*)&dims.x));
+	GLCall(glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, (GLint*)&dims.y));
+	GLCall(glBindTexture(GL_TEXTURE_2D, 0));
+	return dims;
+}

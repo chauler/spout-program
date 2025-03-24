@@ -15,6 +15,7 @@
 #include "gui/SourceCombo.h"
 #include <outputs/SpoutSender.h>
 #include "effects/ascii_render.h"
+#include "effects/Edges.h"
 
 void IconifyCallback(GLFWwindow* window, int iconified) {
     App::SetIconified(iconified);
@@ -23,7 +24,7 @@ void IconifyCallback(GLFWwindow* window, int iconified) {
 App::App(GLFWwindow* window): 
     m_window(window),
     m_ImGuiIO(ImGui::GetIO()),
-    m_effects(std::vector<IEffect*>{/*new ascii_render()*/}),
+    m_effects(std::vector<IEffect*>{}),
     m_source(nullptr),
     m_sender(nullptr),
     m_sourceType(SourceType::None),
@@ -105,9 +106,24 @@ void App::DrawGUI() {
                     m_effects.end());
         }
     }
+
+    if (ImGui::Checkbox("Edges", &edgesEnabled)) {
+        if (edgesEnabled) {
+            m_effects.push_back(new Edges());
+        }
+        else {
+            //Remove Edges effect from list of effects
+            m_effects.erase(std::remove_if(m_effects.begin(), m_effects.end(),
+                [](IEffect* effect) {
+                    return dynamic_cast<Edges*>(effect) != nullptr; }),
+                    m_effects.end());
+        }
+    }
     
     for (const auto& effect : m_effects) {
+        ImGui::PushID(effect);
         effect->DisplayGUIComponent();
+        ImGui::PopID();
     }
 
     ImGui::Dummy(ImVec2(0.0f, 40.0f));
@@ -159,6 +175,10 @@ void App::RunLogic() {
     
     
     outputTex.id = m_spoutSource.GetID();
+    uVec2 dims = m_spoutSource.GetDimensions();
+    outputTex.w = dims.x;
+    outputTex.h = dims.y;
+
     for (const auto& effect : m_effects) {
         outputTex = effect->Draw(outputTex.id);
     }

@@ -1,0 +1,104 @@
+#include "Edges.h"
+#include "Renderer.h"
+#include "util/util.h"
+#include "imgui/imgui.h"
+
+Edges::Edges() : 
+	m_fullscreenQuad(),
+	m_prevDimensions({0, 0}),
+	m_config({
+		.epsilon{0.015},
+		.phi{200.0},
+		.sigma{0.083},
+		.k{2.26},
+		.p{1.00}
+	})
+{
+	shader.AddShader(GL_VERTEX_SHADER, ReadFile("res/shaders/edge.vs"));
+	shader.AddShader(GL_FRAGMENT_SHADER, ReadFile("res/shaders/gaussian.fs"));
+	shader.CompileShader();
+
+	GLCall(glGenFramebuffers(1, &m_FBO));
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_FBO));
+	GLCall(glGenTextures(1, &m_outTex));
+	GLCall(glActiveTexture(GL_TEXTURE0));
+	GLCall(glBindTexture(GL_TEXTURE_2D, m_outTex));
+	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	GLCall(glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_outTex, 0));
+	GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
+	GLCall(glDrawBuffers(1, DrawBuffers));
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		exit(1);
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+
+
+}
+
+SpoutOutTex Edges::Draw(unsigned int imageID) {
+	unsigned int cols, rows;
+	GLCall(glBindTexture(GL_TEXTURE_2D, imageID));
+	GLCall(glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, (GLint*)&cols));
+	GLCall(glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, (GLint*)&rows));
+	GLCall(glBindTexture(GL_TEXTURE_2D, 0));
+
+	//If incoming texture is invalid, don't update anything and just return the previous result
+	if (cols == 0 || rows == 0) {
+		return { m_outTex, (unsigned int)cols, (unsigned int)rows };
+	}
+
+	UpdateImage(imageID);
+
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_FBO));
+	GLCall(glViewport(0, 0, cols, rows));
+	GLCall(glClear(GL_COLOR_BUFFER_BIT));
+	shader.Bind();
+	GLCall(glActiveTexture(GL_TEXTURE0));
+	GLCall(glBindTexture(GL_TEXTURE_2D, imageID));
+	m_fullscreenQuad.Draw();
+	shader.Unbind();
+	return { m_outTex, (unsigned int)cols, (unsigned int)rows };
+
+}
+
+void Edges::DisplayGUIComponent() {
+	ImGui::Text("Edge Detection Parameters");
+	if (ImGui::SliderFloat("Epsilon", &m_config.epsilon, 0.0f, 0.5f, "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
+		GLCall(glProgramUniform1f(shader.GetProgram(), shader.GetUniform("Epsilon"), m_config.epsilon));
+	}
+	if (ImGui::SliderFloat("Phi", &m_config.phi, 100.0f, 500.0f, "%.1f", ImGuiSliderFlags_AlwaysClamp)) {
+		GLCall(glProgramUniform1f(shader.GetProgram(), shader.GetUniform("Phi"), m_config.phi));
+	}
+	if (ImGui::SliderFloat("Sigma", &m_config.sigma, 0.0f, 1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
+		GLCall(glProgramUniform1f(shader.GetProgram(), shader.GetUniform("Sigma"), m_config.sigma));
+	}
+	if (ImGui::SliderFloat("k", &m_config.k, 0.0f, 3.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp)) {
+		GLCall(glProgramUniform1f(shader.GetProgram(), shader.GetUniform("k"), m_config.k));
+	}
+	if (ImGui::SliderFloat("p", &m_config.p, 0.0f, 1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
+		GLCall(glProgramUniform1f(shader.GetProgram(), shader.GetUniform("p"), m_config.p));
+	}
+}
+
+void Edges::UpdateImage(unsigned int imageID) {
+	unsigned int cols, rows;
+	GLCall(glBindTexture(GL_TEXTURE_2D, imageID));
+	GLCall(glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, (GLint*)&cols));
+	GLCall(glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, (GLint*)&rows));
+	GLCall(glBindTexture(GL_TEXTURE_2D, 0));
+
+	if (cols != m_prevDimensions.x || rows != m_prevDimensions.y) {
+		m_prevDimensions.x = cols;
+		m_prevDimensions.y = rows;
+
+		GLCall(glActiveTexture(GL_TEXTURE0));
+		GLCall(glBindTexture(GL_TEXTURE_2D, m_outTex));
+		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
+	}
+
+	GLCall(glBindTexture(GL_TEXTURE_2D, 0));
+	GLCall(glActiveTexture(GL_TEXTURE0));
+}

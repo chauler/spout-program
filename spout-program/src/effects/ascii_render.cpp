@@ -8,7 +8,6 @@
 #include "imgui/imgui_impl_opengl3.h"
 #include "tracy/public/tracy/Tracy.hpp"
 #include <regex>
-#include "imgui/imgui.h"
 
 std::string ParseComputeShader(std::string&& input, unsigned int x, unsigned int y, unsigned int z);
 
@@ -78,25 +77,13 @@ ascii_render::ascii_render() :
 		exit(1);
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 
-	GLCall(glGenTextures(1, &m_inputTex));
-	GLCall(glActiveTexture(GL_TEXTURE1));
-	GLCall(glBindTexture(GL_TEXTURE_2D, m_inputTex));
-	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-
 	GLCall(glGenFramebuffers(1, &m_intermediateFBO));
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_intermediateFBO));
 	GLCall(glGenTextures(1, &m_intermediate));
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_intermediate));
-	//GLCall(glTextureStorage2D(m_intermediate, 1, GL_RGBA8, 80, 60));
 	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 80, 60, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	/*glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);*/
 	GLCall(glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_intermediate, 0));
 	GLCall(glDrawBuffers(1, DrawBuffers));
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -106,12 +93,9 @@ ascii_render::ascii_render() :
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_intermediateFBO2));
 	GLCall(glGenTextures(1, &m_intermediate2));
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_intermediate2));
-	//GLCall(glTextureStorage2D(m_intermediate, 1, GL_RGBA8, 80, 60));
 	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8UI, 80, 60, 0, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, 0));
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	/*glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);*/
 	GLCall(glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_intermediate2, 0));
 	GLCall(glDrawBuffers(1, DrawBuffers));
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -144,7 +128,6 @@ ascii_render::ascii_render() :
 SpoutOutTex ascii_render::Draw(unsigned int imageID) {
 	ZoneScoped;
 
-	m_inputTex = imageID;
 	unsigned int cols, rows;
 	GLCall(glBindTexture(GL_TEXTURE_2D, imageID));
 	GLCall(glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, (GLint*)&cols));
@@ -169,7 +152,6 @@ SpoutOutTex ascii_render::Draw(unsigned int imageID) {
 	dGaussianShader.Bind();
 	GLCall(glActiveTexture(GL_TEXTURE0));
 	GLCall(glBindTexture(GL_TEXTURE_2D, imageID));
-	GLCall(glUniform2i(sobelShader.GetUniform("outputSize"), cols, rows));
 	m_fullscreenQuad.Draw();
 	dGaussianShader.Unbind();
 	//return { m_intermediate, (unsigned int)cols, (unsigned int)rows };

@@ -1,6 +1,8 @@
 #pragma once
 #include <memory>
 #include <GL/glew.h>
+#include "util/types.h"
+
 class Texture2D {
 public:
 	Texture2D(GLenum texUnit = GL_TEXTURE0);
@@ -13,6 +15,7 @@ public:
 	void Allocate(GLint internalFormat, unsigned int w, unsigned int h, GLenum format, GLenum type, unsigned char* data);
 	void SetParameter(GLenum parameter, GLint value);
 	void GetPixelData(unsigned char* data) const;
+	uVec2 GetDimensions() const;
 private:
 	unsigned int m_id = 0;
 	unsigned int m_w = 0, m_h = 0, m_channels = 0;

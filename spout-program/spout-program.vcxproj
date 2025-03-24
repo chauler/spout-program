@@ -179,6 +179,7 @@ xcopy /S /Y /I "$(ProjectDir)res\" "$(OutDir)res"</Command>
   <ItemGroup>
     <ClCompile Include="src\App.cpp" />
     <ClCompile Include="src\effects\ascii_render.cpp" />
+    <ClCompile Include="src\effects\Edges.cpp" />
     <ClCompile Include="src\FontLoader.cpp" />
     <ClCompile Include="src\gui\SourceCombo.cpp" />
     <ClCompile Include="src\outputs\IOutput.h" />
@@ -192,6 +193,7 @@ xcopy /S /Y /I "$(ProjectDir)res\" "$(OutDir)res"</Command>
     <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\sources\SpoutSource.cpp" />
     <ClCompile Include="src\Texture2D.cpp" />
+    <ClCompile Include="src\util\types.h" />
     <ClCompile Include="src\util\util.cpp" />
     <ClCompile Include="src\vendor\escapi\escapi.cpp" />
     <ClCompile Include="src\vendor\imgui\imgui.cpp" />
@@ -206,6 +208,8 @@ xcopy /S /Y /I "$(ProjectDir)res\" "$(OutDir)res"</Command>
   <ItemGroup>
     <ClInclude Include="src\App.h" />
     <ClInclude Include="src\effects\ascii_render.h" />
+    <ClInclude Include="src\effects\Edges.h" />
+    <ClInclude Include="src\effects\IEffect.h" />
     <ClInclude Include="src\FontLoader.h" />
     <ClInclude Include="src\gui\SourceCombo.h" />
     <ClInclude Include="src\outputs\SpoutSender.h" />

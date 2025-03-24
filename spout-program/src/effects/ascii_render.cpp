@@ -421,7 +421,7 @@ void ascii_render::LoadCharacterData(int textSize) {
 	GLCall(glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_R8, textSize, textSize, 4, 0, GL_RED, GL_UNSIGNED_BYTE, newBuffer));
 	//Load all edge glyphs
 	for (int i = 0; i < 4; i++) {
-		wchar_t character = "|_/\\"[i];
+		wchar_t character = "|_\\/"[i];
 		FT_Set_Pixel_Sizes(m_face, 0, textSize);
 		unsigned int glyph_index = FT_Get_Char_Index(m_face, character);
 		FT_Load_Glyph(m_face, glyph_index, FT_LOAD_DEFAULT);

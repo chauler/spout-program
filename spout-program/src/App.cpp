@@ -189,7 +189,6 @@ void App::RunLogic() {
 
     m_source->GetNextFrame(m_spoutSource.GetID(), GL_TEXTURE_2D);
     
-    
     outputTex.id = m_spoutSource.GetID();
     uVec2 dims = m_spoutSource.GetDimensions();
     outputTex.w = dims.x;

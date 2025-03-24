@@ -16,6 +16,7 @@
 #include <outputs/SpoutSender.h>
 #include "effects/ascii_render.h"
 #include "effects/Edges.h"
+#include "effects/Invert.h"
 
 void IconifyCallback(GLFWwindow* window, int iconified) {
     App::SetIconified(iconified);
@@ -28,7 +29,8 @@ App::App(GLFWwindow* window):
     m_source(nullptr),
     m_sender(nullptr),
     m_sourceType(SourceType::None),
-    m_outputType(OutputType::None) 
+    m_outputType(OutputType::None),
+    m_builtInInversion()
 {
     glfwSetWindowIconifyCallback(window, IconifyCallback);
     m_spoutSource.Allocate(GL_RGBA, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE,  0);
@@ -119,11 +121,25 @@ void App::DrawGUI() {
                     m_effects.end());
         }
     }
+
+    if (ImGui::Checkbox("Invert", &invertEnabled)) {
+        if (invertEnabled) {
+            m_effects.push_back(new Invert());
+        }
+        else {
+            //Remove Invert effect from list of effects
+            m_effects.erase(std::remove_if(m_effects.begin(), m_effects.end(),
+                [](IEffect* effect) {
+                    return dynamic_cast<Invert*>(effect) != nullptr; }),
+                    m_effects.end());
+        }
+    }
     
-    for (const auto& effect : m_effects) {
-        ImGui::PushID(effect);
+    for (int i = 0; const auto & effect : m_effects) {
+        ImGui::PushID(i);
         effect->DisplayGUIComponent();
         ImGui::PopID();
+        i++;
     }
 
     ImGui::Dummy(ImVec2(0.0f, 40.0f));
@@ -183,5 +199,7 @@ void App::RunLogic() {
         outputTex = effect->Draw(outputTex.id);
     }
 
+    //Our texture is inverted on the y axis when we receive it from Spout, correct that
+    outputTex = m_builtInInversion.Draw(outputTex.id);
     m_sender->SendTexture(outputTex.id, outputTex.w, outputTex.h);
 }

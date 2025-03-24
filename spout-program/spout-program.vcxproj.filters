@@ -96,6 +96,9 @@
     <ClCompile Include="src\util\types.h">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\effects\Invert.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\vendor\imgui\imconfig.h">
@@ -176,6 +179,9 @@
     <ClInclude Include="src\effects\Edges.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\effects\Invert.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\shaders\sample.vs" />
@@ -186,5 +192,7 @@
     <None Include="res\shaders\edge.vs" />
     <None Include="res\shaders\edge.fs" />
     <None Include="res\shaders\gaussian.fs" />
+    <None Include="res\shaders\invert.fs" />
+    <None Include="res\shaders\invert.vs" />
   </ItemGroup>
 </Project>

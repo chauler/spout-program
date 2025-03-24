@@ -20,8 +20,8 @@ void main()
     ivec2 downSampledPos = ivec2(floor(gl_FragCoord.x / charSize), floor(gl_FragCoord.y / charSize));
     //Colored text implementation
     vec4 sampled = vec4(0.0);
-    vec4 sampledTemp = texture(inputTexture, outPosition.xy);
-    uvec4 edgeSample = texelFetch(edgeTexture, ivec2(downSampledPos.x, downscaledTextureSize.y - (downSampledPos.y+1)), 0);
+    vec4 sampledTemp = texture(inputTexture, vec2(outPosition.x, 1 - outPosition.y));
+    uvec4 edgeSample = texelFetch(edgeTexture, ivec2(downSampledPos.x, (downSampledPos.y)), 0);
 
     //If pixel is an edge
     if(edgeSample.x != 4) {

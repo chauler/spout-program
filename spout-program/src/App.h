@@ -5,7 +5,8 @@
 #include "outputs/IOutput.h"
 #include <memory>
 #include "sources/SpoutSource.h"
-#include <effects/IEffect.h>
+#include "effects/IEffect.h"
+#include "effects/Invert.h"
 
 enum class SourceType: unsigned int { None, Spout, Webcam };
 enum class OutputType : unsigned int { None, Spout, VirtualCam };
@@ -22,11 +23,13 @@ private:
 	//Window management
 	GLFWwindow* m_window;
 	ImGuiIO& m_ImGuiIO;
+
     std::vector<IEffect*> m_effects;
 	std::unique_ptr<ISource> m_source;
 	std::unique_ptr<IOutput> m_sender;
 	SourceType m_sourceType;
 	OutputType m_outputType;
+	Invert m_builtInInversion;
 
 	//GUI State
 	unsigned int spoutSourceID = 0;
@@ -36,4 +39,5 @@ private:
 	SpoutOutTex outputTex{};
 	bool asciiEnabled = false;
 	bool edgesEnabled = false;
+	bool invertEnabled = false;
 };

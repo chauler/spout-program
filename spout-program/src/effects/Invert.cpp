@@ -1,21 +1,14 @@
-#include "Edges.h"
+#include "Invert.h"
 #include "Renderer.h"
 #include "util/util.h"
 #include "imgui/imgui.h"
 
-Edges::Edges() : 
+Invert::Invert() :
 	m_fullscreenQuad(),
-	m_prevDimensions({0, 0}),
-	m_config({
-		.epsilon{0.015},
-		.phi{200.0},
-		.sigma{0.083},
-		.k{2.26},
-		.p{1.00}
-	})
+	m_prevDimensions({ 0, 0 })
 {
-	shader.AddShader(GL_VERTEX_SHADER, ReadFile("res/shaders/edge.vs"));
-	shader.AddShader(GL_FRAGMENT_SHADER, ReadFile("res/shaders/gaussian.fs"));
+	shader.AddShader(GL_VERTEX_SHADER, ReadFile("res/shaders/invert.vs"));
+	shader.AddShader(GL_FRAGMENT_SHADER, ReadFile("res/shaders/invert.fs"));
 	shader.CompileShader();
 
 	GLCall(glGenFramebuffers(1, &m_FBO));
@@ -36,7 +29,7 @@ Edges::Edges() :
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 }
 
-SpoutOutTex Edges::Draw(unsigned int imageID) {
+SpoutOutTex Invert::Draw(unsigned int imageID) {
 	unsigned int cols, rows;
 	GLCall(glBindTexture(GL_TEXTURE_2D, imageID));
 	GLCall(glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, (GLint*)&cols));
@@ -62,26 +55,10 @@ SpoutOutTex Edges::Draw(unsigned int imageID) {
 	return { m_outTex, (unsigned int)cols, (unsigned int)rows };
 }
 
-void Edges::DisplayGUIComponent() {
-	ImGui::Text("Edge Detection Parameters");
-	if (ImGui::SliderFloat("Epsilon", &m_config.epsilon, 0.0f, 0.5f, "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
-		GLCall(glProgramUniform1f(shader.GetProgram(), shader.GetUniform("Epsilon"), m_config.epsilon));
-	}
-	if (ImGui::SliderFloat("Phi", &m_config.phi, 100.0f, 500.0f, "%.1f", ImGuiSliderFlags_AlwaysClamp)) {
-		GLCall(glProgramUniform1f(shader.GetProgram(), shader.GetUniform("Phi"), m_config.phi));
-	}
-	if (ImGui::SliderFloat("Sigma", &m_config.sigma, 0.0f, 1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
-		GLCall(glProgramUniform1f(shader.GetProgram(), shader.GetUniform("Sigma"), m_config.sigma));
-	}
-	if (ImGui::SliderFloat("k", &m_config.k, 0.0f, 3.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp)) {
-		GLCall(glProgramUniform1f(shader.GetProgram(), shader.GetUniform("k"), m_config.k));
-	}
-	if (ImGui::SliderFloat("p", &m_config.p, 0.0f, 1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
-		GLCall(glProgramUniform1f(shader.GetProgram(), shader.GetUniform("p"), m_config.p));
-	}
+void Invert::DisplayGUIComponent() {
 }
 
-void Edges::UpdateImage(unsigned int imageID) {
+void Invert::UpdateImage(unsigned int imageID) {
 	unsigned int cols, rows;
 	GLCall(glBindTexture(GL_TEXTURE_2D, imageID));
 	GLCall(glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, (GLint*)&cols));

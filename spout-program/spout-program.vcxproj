@@ -180,6 +180,7 @@ xcopy /S /Y /I "$(ProjectDir)res\" "$(OutDir)res"</Command>
     <ClCompile Include="src\App.cpp" />
     <ClCompile Include="src\effects\ascii_render.cpp" />
     <ClCompile Include="src\effects\Edges.cpp" />
+    <ClCompile Include="src\effects\Invert.cpp" />
     <ClCompile Include="src\FontLoader.cpp" />
     <ClCompile Include="src\gui\SourceCombo.cpp" />
     <ClCompile Include="src\outputs\IOutput.h" />
@@ -210,6 +211,7 @@ xcopy /S /Y /I "$(ProjectDir)res\" "$(OutDir)res"</Command>
     <ClInclude Include="src\effects\ascii_render.h" />
     <ClInclude Include="src\effects\Edges.h" />
     <ClInclude Include="src\effects\IEffect.h" />
+    <ClInclude Include="src\effects\Invert.h" />
     <ClInclude Include="src\FontLoader.h" />
     <ClInclude Include="src\gui\SourceCombo.h" />
     <ClInclude Include="src\outputs\SpoutSender.h" />
@@ -238,6 +240,8 @@ xcopy /S /Y /I "$(ProjectDir)res\" "$(OutDir)res"</Command>
     <None Include="res\shaders\edge.fs" />
     <None Include="res\shaders\edge.vs" />
     <None Include="res\shaders\gaussian.fs" />
+    <None Include="res\shaders\invert.fs" />
+    <None Include="res\shaders\invert.vs" />
     <None Include="res\shaders\sample.fs" />
     <None Include="res\shaders\sample.vs" />
     <None Include="res\shaders\text.fs" />

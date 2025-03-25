@@ -18,13 +18,17 @@ public:
 	void RunLogic();
 	static void SetIconified(int iconified) { m_iconified = iconified; }
 private:
+	struct EffectListItem {
+		IEffect* effect;
+		std::string label;
+	};
 	inline static int m_iconified = 0;
 
 	//Window management
 	GLFWwindow* m_window;
 	ImGuiIO& m_ImGuiIO;
 
-    std::vector<IEffect*> m_effects;
+    std::vector<EffectListItem> m_effects;
 	std::unique_ptr<ISource> m_source;
 	std::unique_ptr<IOutput> m_sender;
 	SourceType m_sourceType;

@@ -25,7 +25,7 @@ void IconifyCallback(GLFWwindow* window, int iconified) {
 App::App(GLFWwindow* window): 
     m_window(window),
     m_ImGuiIO(ImGui::GetIO()),
-    m_effects(std::vector<IEffect*>{}),
+    m_effects(std::vector<EffectListItem>{}),
     m_source(nullptr),
     m_sender(nullptr),
     m_sourceType(SourceType::None),
@@ -93,51 +93,40 @@ void App::DrawGUI() {
     
     ImGui::Dummy(ImVec2(0.0f, 40.0f));
 
-    ImGui::Text("Effects");
     ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
-    if (ImGui::Checkbox("ASCII", &asciiEnabled)) {
-        if (asciiEnabled) {
-            m_effects.push_back(new ascii_render());
+    //if (ImGui::Checkbox("ASCII", &asciiEnabled)) {
+    //    if (asciiEnabled) {
+    //        m_effects.push_back(new ascii_render());
+    //    }
+    //    else {
+    //        //Remove ascii_render from list of effects
+    //        m_effects.erase(std::remove_if(m_effects.begin(), m_effects.end(), 
+    //            [](IEffect* effect) {
+    //                return dynamic_cast<ascii_render*>(effect) != nullptr;}), 
+    //                m_effects.end());
+    //    }
+    //}
+
+    if (ImGui::BeginListBox("Effects")) {
+        for (const auto& effect : m_effects) {
+            ImGui::Text(effect.label.c_str());
         }
-        else {
-            //Remove ascii_render from list of effects
-            m_effects.erase(std::remove_if(m_effects.begin(), m_effects.end(), 
-                [](IEffect* effect) {
-                    return dynamic_cast<ascii_render*>(effect) != nullptr;}), 
-                    m_effects.end());
-        }
+        ImGui::EndListBox();
     }
 
-    if (ImGui::Checkbox("Edges", &edgesEnabled)) {
-        if (edgesEnabled) {
-            m_effects.push_back(new Edges());
+    if (ImGui::BeginDragDropTarget()) {
+        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Effect")) {
+            EffectListItem* effect;
+            memcpy(&effect, payload->Data, payload->DataSize);
+            m_effects.push_back(*effect);
         }
-        else {
-            //Remove Edges effect from list of effects
-            m_effects.erase(std::remove_if(m_effects.begin(), m_effects.end(),
-                [](IEffect* effect) {
-                    return dynamic_cast<Edges*>(effect) != nullptr; }),
-                    m_effects.end());
-        }
-    }
-
-    if (ImGui::Checkbox("Invert", &invertEnabled)) {
-        if (invertEnabled) {
-            m_effects.push_back(new Invert());
-        }
-        else {
-            //Remove Invert effect from list of effects
-            m_effects.erase(std::remove_if(m_effects.begin(), m_effects.end(),
-                [](IEffect* effect) {
-                    return dynamic_cast<Invert*>(effect) != nullptr; }),
-                    m_effects.end());
-        }
+        ImGui::EndDragDropTarget();
     }
     
     for (int i = 0; const auto & effect : m_effects) {
         ImGui::PushID(i);
-        effect->DisplayGUIComponent();
+        effect.effect->DisplayGUIComponent();
         ImGui::PopID();
         i++;
     }
@@ -171,6 +160,36 @@ void App::DrawGUI() {
         ImGui::End();
     }
 
+    unsigned int listWindowWidth = 100;
+    ImGui::SetNextWindowPos(ImVec2(window_w - listWindowWidth, 0));
+    ImGui::SetNextWindowSize(ImVec2(100, window_h));
+    ImGui::Begin("Effects", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
+    ImGui::Text("Effects");
+    ImGui::PushID("EffectList");
+
+    ImGui::Button("ASCII");
+    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
+        EffectListItem* effect = new EffectListItem{ .effect{new ascii_render()}, .label{"ASCII"}};
+        ImGui::SetDragDropPayload("Effect", &effect, sizeof(effect));
+        ImGui::EndDragDropSource();
+    }
+
+    ImGui::Button("Edges");
+    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
+        EffectListItem* effect = new EffectListItem{ .effect{new Edges()}, .label{"Edges"} };
+        ImGui::SetDragDropPayload("Effect", &effect, sizeof(effect));
+        ImGui::EndDragDropSource();
+    }
+
+    ImGui::Button("Invert");
+    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
+        EffectListItem* effect = new EffectListItem{ .effect{new Invert()}, .label{"Invert"} };
+        ImGui::SetDragDropPayload("Effect", &effect, sizeof(effect));
+        ImGui::EndDragDropSource();
+    }
+    ImGui::PopID();
+    ImGui::End();
+
     ImGui::Render();
     int display_w, display_h;
     glfwGetFramebufferSize(m_window, &display_w, &display_h);
@@ -195,7 +214,7 @@ void App::RunLogic() {
     outputTex.h = dims.y;
 
     for (const auto& effect : m_effects) {
-        outputTex = effect->Draw(outputTex.id);
+        outputTex = effect.effect->Draw(outputTex.id);
     }
 
     //Our texture is inverted on the y axis when we receive it from Spout, correct that

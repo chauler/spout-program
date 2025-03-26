@@ -9,6 +9,7 @@
 #include <SpoutLibrary/SpoutLibrary.h>
 #include "tracy/public/tracy/Tracy.hpp"
 #include <memory>
+#include <algorithm>
 #include "sources/SpoutSource.h"
 #include "sources/CamSource.h"
 #include "outputs/VirtualCamera.h"
@@ -108,9 +109,44 @@ void App::DrawGUI() {
     //    }
     //}
 
-    if (ImGui::BeginListBox("Effects")) {
-        for (const auto& effect : m_effects) {
-            ImGui::Text(effect.label.c_str());
+    if (ImGui::BeginListBox("Effects", ImVec2(0, (m_effects.size() + 1) * ImGui::GetTextLineHeightWithSpacing()))) {
+        for (unsigned int i = 0; i < m_effects.size(); i++) {
+            std::string label = m_effects[i].label;
+            ImGui::Text(label.c_str());
+
+            if (ImGui::BeginDragDropTarget()) {
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Effect")) {
+                    EffectListItem* effect;
+                    memcpy(&effect, payload->Data, payload->DataSize);
+                    m_effects.insert(m_effects.begin()+i+1, *effect);
+                }
+                else if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("EffectList", ImGuiDragDropFlags_AcceptPeekOnly)) {
+                    unsigned int incomingPos = *(unsigned int*)payload->Data;
+                    ImVec2 screenPos = ImGui::GetCursorScreenPos();
+                    float heightOffset = 0;
+                    if (i < incomingPos) {
+                        heightOffset = ImGui::GetTextLineHeight();
+                    }
+                    float separatorWidth = 2.0f;
+                    ImGui::GetForegroundDrawList()->AddLine({ screenPos.x, screenPos.y - heightOffset - separatorWidth}, {screenPos.x + ImGui::CalcTextSize(label.c_str()).x, screenPos.y - heightOffset - separatorWidth}, ImGui::ColorConvertFloat4ToU32({1.0, 0.0, 0.0, 1.0}), separatorWidth);
+                    //We run the whole block whenever the mouse hovers. Then, on mouse release, we run this.
+                    if (payload->IsDelivery()) {
+                        //Incoming item is being moved earlier in the list, shift right
+                        if (i < incomingPos) {
+                            std::rotate(m_effects.begin() + i, m_effects.begin() + incomingPos, m_effects.begin() + incomingPos + 1);
+                        }
+                        else { //Shift left
+                            std::rotate(m_effects.begin() + incomingPos, m_effects.begin() + incomingPos + 1, m_effects.begin() + i + 1);
+                        }
+                    }
+                }
+                ImGui::EndDragDropTarget();
+            }
+
+            if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
+                ImGui::SetDragDropPayload("EffectList", &i, sizeof(i));
+                ImGui::EndDragDropSource();
+            }
         }
         ImGui::EndListBox();
     }

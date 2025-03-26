@@ -40,12 +40,17 @@ void SpoutEffects::VirtualCamera::SendTexture(unsigned int id, unsigned int widt
         m_convertedData = std::vector<unsigned char>(m_w * m_h * 3);
     }
 
-    GLCall(glBindTexture(GL_TEXTURE_2D, id));
-    GLCall(glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_data.data()));
-    GLCall(glBindTexture(GL_TEXTURE_2D, 0));
-    spoutCopy copier{};
-    copier.rgba2bgr(m_data.data(), m_convertedData.data(), real_w, real_h, true);
-
+    //We have set up OpenGL to read in chunks of 4, so if we have less than a 4x4 input (e.g. no input), just fill zeros to avoid read access errors.
+    if (width < 4 || height < 4) {
+        std::fill(m_data.begin(), m_data.end(), 0);
+    }
+    else {
+        GLCall(glBindTexture(GL_TEXTURE_2D, id));
+        GLCall(glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_data.data()));
+        GLCall(glBindTexture(GL_TEXTURE_2D, 0));
+        spoutCopy copier{};
+        copier.rgba2bgr(m_data.data(), m_convertedData.data(), real_w, real_h, true);
+    }
     scSendFrame(m_camera, m_convertedData.data());
 }
 

@@ -54,8 +54,11 @@ void App::DrawGUI() {
 
     int window_w, window_h;
     glfwGetWindowSize(m_window, &window_w, &window_h);
-    ImGui::SetNextWindowPos(ImVec2(0, 0));
-    ImGui::SetNextWindowSize(ImVec2(window_w / 5, window_h));
+
+    const ImVec2 mainPanelPos{0.0f, 0.0f};
+    const ImVec2 mainPanelDims{ window_w / 5.0f, static_cast<float>(window_h)};
+    ImGui::SetNextWindowPos(mainPanelPos);
+    ImGui::SetNextWindowSize(mainPanelDims);
     
     ImGui::Begin("Options", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
     
@@ -93,21 +96,6 @@ void App::DrawGUI() {
     }
     
     ImGui::Dummy(ImVec2(0.0f, 40.0f));
-
-    ImGui::Dummy(ImVec2(0.0f, 5.0f));
-
-    //if (ImGui::Checkbox("ASCII", &asciiEnabled)) {
-    //    if (asciiEnabled) {
-    //        m_effects.push_back(new ascii_render());
-    //    }
-    //    else {
-    //        //Remove ascii_render from list of effects
-    //        m_effects.erase(std::remove_if(m_effects.begin(), m_effects.end(), 
-    //            [](IEffect* effect) {
-    //                return dynamic_cast<ascii_render*>(effect) != nullptr;}), 
-    //                m_effects.end());
-    //    }
-    //}
 
     if (ImGui::BeginListBox("Effects", ImVec2(0, (m_effects.size() + 1) * ImGui::GetTextLineHeightWithSpacing()))) {
         for (unsigned int i = 0; i < m_effects.size(); i++) {
@@ -183,29 +171,17 @@ void App::DrawGUI() {
 
     ImGui::End();
 
-    if (m_source && m_sender) {
-        ImGui::SetNextWindowPos(ImVec2(window_w / 5, 0));
-        ImGui::SetNextWindowSize(ImVec2(ImGui::GetContentRegionAvail()), ImGuiCond_Once);
-        ImGui::Begin("Spout Feed", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
-        ImGui::Text("size = %d x %d \t | \t %.3f ms/frame (%.1f FPS)", m_source->GetWidth(), m_source->GetHeight(), 1000.0f / m_ImGuiIO.Framerate, m_ImGuiIO.Framerate);
-        auto contentSpace = ImGui::GetContentRegionAvail();
-        auto initialCursorPos = ImGui::GetCursorPos();
-        ImGui::Image((void*)(intptr_t)m_spoutSource.GetID(), ImVec2(contentSpace.x/2, contentSpace.y));
-        ImGui::SetCursorPos(ImVec2(initialCursorPos.x+ contentSpace.x / 2, initialCursorPos.y));
-        ImGui::Image((void*)(intptr_t)outputTex.id, ImVec2(contentSpace.x / 2, contentSpace.y));
-        ImGui::End();
-    }
-
-    unsigned int listWindowWidth = 100;
-    ImGui::SetNextWindowPos(ImVec2(window_w - listWindowWidth, 0));
-    ImGui::SetNextWindowSize(ImVec2(100, window_h));
+    ImVec2 listPanelPos{mainPanelDims.x, 0.0f};
+    ImVec2 listPanelDims{ std::max(100.f, window_w * 0.1f), static_cast<float>(window_h)};
+    ImGui::SetNextWindowPos(listPanelPos);
+    ImGui::SetNextWindowSize(listPanelDims);
     ImGui::Begin("Effects", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
     ImGui::Text("Effects");
     ImGui::PushID("EffectList");
 
     ImGui::Button("ASCII");
     if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
-        EffectListItem* effect = new EffectListItem{ .effect{new ascii_render()}, .label{"ASCII"}};
+        EffectListItem* effect = new EffectListItem{ .effect{new ascii_render()}, .label{"ASCII"} };
         ImGui::SetDragDropPayload("Effect", &effect, sizeof(effect));
         ImGui::EndDragDropSource();
     }
@@ -225,6 +201,23 @@ void App::DrawGUI() {
     }
     ImGui::PopID();
     ImGui::End();
+
+    if (m_source && m_sender) {
+        const ImVec2 previewPanelPos{listPanelPos.x + listPanelDims.x, 0.0f};
+        const ImVec2 previewPanelDims{ static_cast<float>(window_w) - previewPanelPos.x, static_cast<float>(window_h) };
+        ImGui::SetNextWindowPos(previewPanelPos);
+        ImGui::SetNextWindowSize(previewPanelDims);
+        ImGui::Begin("Spout Feed", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
+        ImGui::Text("size = %d x %d \t | \t %.3f ms/frame (%.1f FPS)", m_source->GetWidth(), m_source->GetHeight(), 1000.0f / m_ImGuiIO.Framerate, m_ImGuiIO.Framerate);
+        auto contentSpace = ImGui::GetContentRegionAvail();
+        auto initialCursorPos = ImGui::GetCursorPos();
+        ImGui::Image((void*)(intptr_t)m_spoutSource.GetID(), ImVec2(contentSpace.x/2, contentSpace.y));
+        ImGui::SetCursorPos(ImVec2(initialCursorPos.x+ contentSpace.x / 2, initialCursorPos.y));
+        ImGui::Image((void*)(intptr_t)outputTex.id, ImVec2(contentSpace.x / 2, contentSpace.y));
+        ImGui::End();
+    }
+
+    
 
     ImGui::Render();
     int display_w, display_h;

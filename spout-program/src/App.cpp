@@ -50,7 +50,7 @@ void App::DrawGUI() {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
-    ImGui::ShowDemoWindow();
+    //ImGui::ShowDemoWindow();
 
     int window_w, window_h;
     glfwGetWindowSize(m_window, &window_w, &window_h);
@@ -60,7 +60,7 @@ void App::DrawGUI() {
     ImGui::SetNextWindowPos(mainPanelPos);
     ImGui::SetNextWindowSize(mainPanelDims);
     
-    ImGui::Begin("Options", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+    ImGui::Begin("Options", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar);
     
     ImGui::Text("Inputs");
     ImGui::Dummy(ImVec2(0.0f, 5.0f));
@@ -97,10 +97,29 @@ void App::DrawGUI() {
     
     ImGui::Dummy(ImVec2(0.0f, 40.0f));
 
-    if (ImGui::BeginListBox("Effects", ImVec2(0, (m_effects.size() + 1) * ImGui::GetTextLineHeightWithSpacing()))) {
+    const float buttonHeight = ImGui::GetTextLineHeight() + ImGui::GetStyle().FramePadding.y * 2.0f;
+    const ImVec2 listBoxDims{ImGui::CalcItemWidth(), (m_effects.size() + 1) * buttonHeight};
+    if (ImGui::BeginListBox("Effects", listBoxDims)) {
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{0.0f, 0.0f});
         for (unsigned int i = 0; i < m_effects.size(); i++) {
             std::string label = m_effects[i].label;
-            ImGui::Text(label.c_str());
+            ImGui::PushStyleColor(ImGuiCol_Border, ImGui::ColorConvertFloat4ToU32({ 0.5, 0.5, 0.5, 1.0 }));
+            ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+            ImGui::PushID(i);
+
+            //We must be careful when deleting the current effect. Decrement i and skip the event handling.
+            if (ImGui::Button(label.c_str(), ImVec2{ ImGui::GetContentRegionAvail().x, 0 })) {
+                m_effects.erase(m_effects.begin()+i, m_effects.begin()+i+1);
+                i--;
+                ImGui::PopID();
+                ImGui::PopStyleVar();
+                ImGui::PopStyleColor();
+                continue;
+            }
+
+            ImGui::PopID();
+            ImGui::PopStyleVar();
+            ImGui::PopStyleColor();
 
             if (ImGui::BeginDragDropTarget()) {
                 if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Effect")) {
@@ -113,10 +132,10 @@ void App::DrawGUI() {
                     ImVec2 screenPos = ImGui::GetCursorScreenPos();
                     float heightOffset = 0;
                     if (i < incomingPos) {
-                        heightOffset = ImGui::GetTextLineHeight();
+                        heightOffset = buttonHeight;
                     }
                     float separatorWidth = 2.0f;
-                    ImGui::GetForegroundDrawList()->AddLine({ screenPos.x, screenPos.y - heightOffset - separatorWidth}, {screenPos.x + ImGui::CalcTextSize(label.c_str()).x, screenPos.y - heightOffset - separatorWidth}, ImGui::ColorConvertFloat4ToU32({1.0, 0.0, 0.0, 1.0}), separatorWidth);
+                    ImGui::GetForegroundDrawList()->AddLine({ screenPos.x, screenPos.y - heightOffset - separatorWidth}, {screenPos.x + listBoxDims.x, screenPos.y - heightOffset - separatorWidth}, ImGui::ColorConvertFloat4ToU32({1.0, 0.0, 0.0, 1.0}), separatorWidth);
                     //We run the whole block whenever the mouse hovers. Then, on mouse release, we run this.
                     if (payload->IsDelivery()) {
                         //Incoming item is being moved earlier in the list, shift right
@@ -133,12 +152,13 @@ void App::DrawGUI() {
 
             if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
                 ImGui::SetDragDropPayload("EffectList", &i, sizeof(i));
+                ImGui::Text(label.c_str());
                 ImGui::EndDragDropSource();
             }
         }
+        ImGui::PopStyleVar();
         ImGui::EndListBox();
     }
-
     if (ImGui::BeginDragDropTarget()) {
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Effect")) {
             EffectListItem* effect;
@@ -175,7 +195,7 @@ void App::DrawGUI() {
     ImVec2 listPanelDims{ std::max(100.f, window_w * 0.1f), static_cast<float>(window_h)};
     ImGui::SetNextWindowPos(listPanelPos);
     ImGui::SetNextWindowSize(listPanelDims);
-    ImGui::Begin("Effects", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
+    ImGui::Begin("Effects", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar);
     ImGui::Text("Effects");
     ImGui::PushID("EffectList");
 
@@ -207,7 +227,7 @@ void App::DrawGUI() {
         const ImVec2 previewPanelDims{ static_cast<float>(window_w) - previewPanelPos.x, static_cast<float>(window_h) };
         ImGui::SetNextWindowPos(previewPanelPos);
         ImGui::SetNextWindowSize(previewPanelDims);
-        ImGui::Begin("Spout Feed", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
+        ImGui::Begin("Spout Feed", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
         ImGui::Text("size = %d x %d \t | \t %.3f ms/frame (%.1f FPS)", m_source->GetWidth(), m_source->GetHeight(), 1000.0f / m_ImGuiIO.Framerate, m_ImGuiIO.Framerate);
         auto contentSpace = ImGui::GetContentRegionAvail();
         auto initialCursorPos = ImGui::GetCursorPos();

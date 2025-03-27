@@ -122,19 +122,22 @@ void App::DrawGUI() {
             ImGui::PopStyleColor();
 
             if (ImGui::BeginDragDropTarget()) {
-                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Effect")) {
-                    EffectListItem* effect;
-                    memcpy(&effect, payload->Data, payload->DataSize);
-                    m_effects.insert(m_effects.begin()+i+1, *effect);
+                const ImVec2 screenPos = ImGui::GetCursorScreenPos();
+                const float separatorWidth = 2.0f;
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Effect", ImGuiDragDropFlags_AcceptPeekOnly)) {
+                    ImGui::GetForegroundDrawList()->AddLine({ screenPos.x, screenPos.y - separatorWidth }, { screenPos.x + listBoxDims.x, screenPos.y - separatorWidth }, ImGui::ColorConvertFloat4ToU32({ 1.0, 0.0, 0.0, 1.0 }), separatorWidth);
+                    if (payload->IsDelivery()) {
+                        EffectListItem* effect;
+                        memcpy(&effect, payload->Data, payload->DataSize);
+                        m_effects.insert(m_effects.begin()+i+1, *effect);
+                    }
                 }
                 else if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("EffectList", ImGuiDragDropFlags_AcceptPeekOnly)) {
                     unsigned int incomingPos = *(unsigned int*)payload->Data;
-                    ImVec2 screenPos = ImGui::GetCursorScreenPos();
                     float heightOffset = 0;
                     if (i < incomingPos) {
                         heightOffset = buttonHeight;
                     }
-                    float separatorWidth = 2.0f;
                     ImGui::GetForegroundDrawList()->AddLine({ screenPos.x, screenPos.y - heightOffset - separatorWidth}, {screenPos.x + listBoxDims.x, screenPos.y - heightOffset - separatorWidth}, ImGui::ColorConvertFloat4ToU32({1.0, 0.0, 0.0, 1.0}), separatorWidth);
                     //We run the whole block whenever the mouse hovers. Then, on mouse release, we run this.
                     if (payload->IsDelivery()) {
@@ -200,23 +203,26 @@ void App::DrawGUI() {
     ImGui::PushID("EffectList");
 
     ImGui::Button("ASCII");
-    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
+    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
         EffectListItem* effect = new EffectListItem{ .effect{new ascii_render()}, .label{"ASCII"} };
         ImGui::SetDragDropPayload("Effect", &effect, sizeof(effect));
+        ImGui::Text(effect->label.c_str());
         ImGui::EndDragDropSource();
     }
 
     ImGui::Button("Edges");
-    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
+    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
         EffectListItem* effect = new EffectListItem{ .effect{new Edges()}, .label{"Edges"} };
         ImGui::SetDragDropPayload("Effect", &effect, sizeof(effect));
+        ImGui::Text(effect->label.c_str());
         ImGui::EndDragDropSource();
     }
 
     ImGui::Button("Invert");
-    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
+    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
         EffectListItem* effect = new EffectListItem{ .effect{new Invert()}, .label{"Invert"} };
         ImGui::SetDragDropPayload("Effect", &effect, sizeof(effect));
+        ImGui::Text(effect->label.c_str());
         ImGui::EndDragDropSource();
     }
     ImGui::PopID();

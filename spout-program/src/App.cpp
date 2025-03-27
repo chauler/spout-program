@@ -228,20 +228,24 @@ void App::DrawGUI() {
     ImGui::PopID();
     ImGui::End();
 
+    const ImVec2 previewPanelPos{listPanelPos.x + listPanelDims.x, 0.0f};
+    const ImVec2 previewPanelDims{ static_cast<float>(window_w) - previewPanelPos.x, static_cast<float>(window_h) };
+    ImGui::SetNextWindowPos(previewPanelPos);
+    ImGui::SetNextWindowSize(previewPanelDims);
+    ImGui::Begin("Spout Feed", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
+    ImGui::Text("Video Preview:"); ImGui::SameLine();
     if (m_source && m_sender) {
-        const ImVec2 previewPanelPos{listPanelPos.x + listPanelDims.x, 0.0f};
-        const ImVec2 previewPanelDims{ static_cast<float>(window_w) - previewPanelPos.x, static_cast<float>(window_h) };
-        ImGui::SetNextWindowPos(previewPanelPos);
-        ImGui::SetNextWindowSize(previewPanelDims);
-        ImGui::Begin("Spout Feed", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
         ImGui::Text("size = %d x %d \t | \t %.3f ms/frame (%.1f FPS)", m_source->GetWidth(), m_source->GetHeight(), 1000.0f / m_ImGuiIO.Framerate, m_ImGuiIO.Framerate);
         auto contentSpace = ImGui::GetContentRegionAvail();
         auto initialCursorPos = ImGui::GetCursorPos();
-        ImGui::Image((void*)(intptr_t)m_spoutSource.GetID(), ImVec2(contentSpace.x/2, contentSpace.y));
-        ImGui::SetCursorPos(ImVec2(initialCursorPos.x+ contentSpace.x / 2, initialCursorPos.y));
-        ImGui::Image((void*)(intptr_t)outputTex.id, ImVec2(contentSpace.x / 2, contentSpace.y));
-        ImGui::End();
+        const float gap = 5.0f;
+        const ImVec2 imageDims{contentSpace.x / 2 - gap, contentSpace.y};
+        ImGui::Image((void*)(intptr_t)m_spoutSource.GetID(), imageDims);
+        ImGui::GetForegroundDrawList()->AddLine({previewPanelPos.x+initialCursorPos.x+imageDims.x+gap, initialCursorPos.y}, { previewPanelPos.x+initialCursorPos.x+imageDims.x + gap, initialCursorPos.y+imageDims.y}, ImGui::ColorConvertFloat4ToU32({ 1.0, 0.0, 0.0, 1.0 }), gap);
+        ImGui::SetCursorPos(ImVec2(initialCursorPos.x + imageDims.x + gap * 2.0f, initialCursorPos.y));
+        ImGui::Image((void*)(intptr_t)outputTex.id, imageDims);
     }
+    ImGui::End();
 
     
 

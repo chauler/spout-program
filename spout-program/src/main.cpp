@@ -14,6 +14,8 @@
 #include "tracy/public/tracy/Tracy.hpp"
 #include <Renderer.h>
 
+int Main(int, char**);
+
 static void glfw_error_callback(int error, const char* description)
 {
     fprintf(stderr, "GLFW Error %d: %s\n", error, description);
@@ -27,7 +29,18 @@ void cleanup(GLFWwindow* window) {
     glfwTerminate();
 }
 
-int main(int, char**)
+#if defined(DEBUG)
+    int main(int argc, char** argv) {
+        return Main(argc, argv);
+    }
+#elif defined(RELEASE)
+    int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdLine, int cmdShow) {
+        return Main(__argc, __argv);
+    }
+#endif
+
+
+int Main(int, char**)
 {
     glfwSetErrorCallback(glfw_error_callback);
     if (!glfwInit())

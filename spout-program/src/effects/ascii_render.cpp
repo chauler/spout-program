@@ -27,7 +27,7 @@ ascii_render::ascii_render() :
 		}),
 	m_charset(m_charSets[m_config.numChars]) 
 {
-	fontLoader.LoadFace("res/fonts/Roboto-Regular.ttf");
+	fontLoader.LoadFace("res/fonts/roboto/Roboto-Regular.ttf");
 	m_face = fontLoader.GetFace();
 	LoadCharacterData(m_config.charSize);
 

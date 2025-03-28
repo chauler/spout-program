@@ -25,7 +25,7 @@ void IconifyCallback(GLFWwindow* window, int iconified) {
 
 App::App(GLFWwindow* window): 
     m_window(window),
-    m_ImGuiIO(ImGui::GetIO()),
+    m_gui(window),
     m_effects(std::vector<EffectListItem>{}),
     m_source(nullptr),
     m_sender(nullptr),
@@ -235,7 +235,8 @@ void App::DrawGUI() {
     ImGui::Begin("Spout Feed", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
     ImGui::Text("Video Preview:"); ImGui::SameLine();
     if (m_source && m_sender) {
-        ImGui::Text("size = %d x %d \t | \t %.3f ms/frame (%.1f FPS)", m_source->GetWidth(), m_source->GetHeight(), 1000.0f / m_ImGuiIO.Framerate, m_ImGuiIO.Framerate);
+        const float framerate = ImGui::GetIO().Framerate;
+        ImGui::Text("size = %d x %d \t | \t %.3f ms/frame (%.1f FPS)", m_source->GetWidth(), m_source->GetHeight(), 1000.0f / framerate, framerate);
         auto contentSpace = ImGui::GetContentRegionAvail();
         auto initialCursorPos = ImGui::GetCursorPos();
         const float gap = 5.0f;

@@ -7,6 +7,7 @@
 #include "sources/SpoutSource.h"
 #include "effects/IEffect.h"
 #include "effects/Invert.h"
+#include <gui\GuiManager.h>
 
 enum class SourceType: unsigned int { None, Spout, Webcam };
 enum class OutputType : unsigned int { None, Spout, VirtualCam };
@@ -26,7 +27,7 @@ private:
 
 	//Window management
 	GLFWwindow* m_window;
-	ImGuiIO& m_ImGuiIO;
+	GuiManager m_gui;
 
     std::vector<EffectListItem> m_effects;
 	std::unique_ptr<ISource> m_source;

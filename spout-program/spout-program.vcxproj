@@ -182,6 +182,7 @@ xcopy /S /Y /I "$(ProjectDir)res\" "$(OutDir)res"</Command>
     <ClCompile Include="src\effects\Edges.cpp" />
     <ClCompile Include="src\effects\Invert.cpp" />
     <ClCompile Include="src\FontLoader.cpp" />
+    <ClCompile Include="src\gui\GuiManager.cpp" />
     <ClCompile Include="src\gui\SourceCombo.cpp" />
     <ClCompile Include="src\outputs\IOutput.h" />
     <ClCompile Include="src\outputs\SpoutSender.cpp" />
@@ -213,6 +214,7 @@ xcopy /S /Y /I "$(ProjectDir)res\" "$(OutDir)res"</Command>
     <ClInclude Include="src\effects\IEffect.h" />
     <ClInclude Include="src\effects\Invert.h" />
     <ClInclude Include="src\FontLoader.h" />
+    <ClInclude Include="src\gui\GuiManager.h" />
     <ClInclude Include="src\gui\SourceCombo.h" />
     <ClInclude Include="src\outputs\SpoutSender.h" />
     <ClInclude Include="src\outputs\VirtualCamera.h" />

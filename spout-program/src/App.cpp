@@ -254,7 +254,11 @@ void App::DrawGUI() {
     ImGui::PushID("EffectList");
 
     ImGui::Button("ASCII");
+    if (ImGui::IsItemHovered()) {
+        ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
+    }
     if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
+        ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
         EffectListItem* effect = new EffectListItem{ .effect{new ascii_render()}, .label{"ASCII"} };
         ImGui::SetDragDropPayload("Effect", &effect, sizeof(effect));
         ImGui::Text(effect->label.c_str());
@@ -262,7 +266,11 @@ void App::DrawGUI() {
     }
 
     ImGui::Button("Edges");
+    if (ImGui::IsItemHovered()) {
+        ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
+    }
     if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
+        ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
         EffectListItem* effect = new EffectListItem{ .effect{new Edges()}, .label{"Edges"} };
         ImGui::SetDragDropPayload("Effect", &effect, sizeof(effect));
         ImGui::Text(effect->label.c_str());
@@ -270,7 +278,11 @@ void App::DrawGUI() {
     }
 
     ImGui::Button("Invert");
+    if (ImGui::IsItemHovered()) {
+        ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
+    }
     if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
+        ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
         EffectListItem* effect = new EffectListItem{ .effect{new Invert()}, .label{"Invert"} };
         ImGui::SetDragDropPayload("Effect", &effect, sizeof(effect));
         ImGui::Text(effect->label.c_str());

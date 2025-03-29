@@ -45,4 +45,5 @@ private:
 	bool asciiEnabled = false;
 	bool edgesEnabled = false;
 	bool invertEnabled = false;
+	int m_selectedEffect = -1;
 };

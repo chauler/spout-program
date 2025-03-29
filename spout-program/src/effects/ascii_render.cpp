@@ -32,7 +32,6 @@ ascii_render::ascii_render() :
 	LoadCharacterData(m_config.charSize);
 
 	std::string computeShaderSource = ParseComputeShader(ReadFile("res/shaders/compute.cs"), m_config.charSize, m_config.charSize, 1);
-
 	computeShader.AddShader(GL_COMPUTE_SHADER, computeShaderSource);
 	computeShader.CompileShader();
 	GLCall(glGenTextures(1, &m_computeShaderOutput));

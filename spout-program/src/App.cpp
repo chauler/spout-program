@@ -41,6 +41,8 @@ App::App(GLFWwindow* window):
     m_spoutSource.SetParameter(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     m_gui.LoadFont("OpenSans", "res/fonts/opensans/OpenSans-Regular.ttf", 18.0f);
+    m_gui.LoadFont("ListEntries", "res/fonts/opensans/OpenSans-Regular.ttf", 18.0f);
+    m_gui.LoadFont("Heading", "res/fonts/opensans/OpenSans-Bold.ttf", 27.0f);
 }
 
 void App::DrawGUI() {
@@ -52,7 +54,6 @@ void App::DrawGUI() {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
-    //ImGui::ShowDemoWindow();
 
     int window_w, window_h;
     glfwGetWindowSize(m_window, &window_w, &window_h);
@@ -64,7 +65,9 @@ void App::DrawGUI() {
     
     ImGui::Begin("Options", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar);
     
+    ImGui::PushFont(m_gui.GetFont("Heading"));
     ImGui::Text("Inputs");
+    ImGui::PopFont();
     ImGui::Dummy(ImVec2(0.0f, 5.0f));
     //Selectable returns true if clicked that frame. Filter for only when *changing* selection
     if (ImGui::Selectable("Spout##Input", m_sourceType == SourceType::Spout) && m_sourceType != SourceType::Spout) {
@@ -100,28 +103,42 @@ void App::DrawGUI() {
     ImGui::Dummy(ImVec2(0.0f, 40.0f));
 
     const float buttonHeight = ImGui::GetTextLineHeight() + ImGui::GetStyle().FramePadding.y * 2.0f;
-    const ImVec2 listBoxDims{ImGui::CalcItemWidth(), (m_effects.size() + 1) * buttonHeight};
-    if (ImGui::BeginListBox("Effects", listBoxDims)) {
+    const float listBoxHeight = m_effects.size() > 5 ? 5 * buttonHeight : (m_effects.size() + 1) * buttonHeight;
+    ImGui::BeginTable("##Effects", 2, ImGuiTableFlags_SizingFixedFit);
+    ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed);
+    ImGui::TableSetupColumn("List", ImGuiTableColumnFlags_WidthStretch);
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    ImGui::PushFont(m_gui.GetFont("Heading"));
+    ImGui::Text("Effects");
+    ImGui::PopFont();
+    ImGui::TableNextColumn();
+    const ImVec2 listBoxDims{ImGui::GetContentRegionAvail().x, listBoxHeight};
+    if (ImGui::BeginListBox("##Effects", listBoxDims)) {
+        ImGui::PushFont(m_gui.GetFont("ListEntries"));
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{0.0f, 0.0f});
         for (unsigned int i = 0; i < m_effects.size(); i++) {
+            ImGuiStyle& style = ImGui::GetStyle();
             std::string label = m_effects[i].label;
             ImGui::PushStyleColor(ImGuiCol_Border, ImGui::ColorConvertFloat4ToU32({ 0.5, 0.5, 0.5, 1.0 }));
             ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { style.FramePadding.x, 0.0f });
+            ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, { 0.0f, 0.0f });
             ImGui::PushID(i);
 
+            ImGui::SetNextItemAllowOverlap();
+            const ImVec2 initialPos = ImGui::GetCursorPos();
+            const ImVec2 buttonDims{ ImGui::GetContentRegionAvail().x, 0 };
             //We must be careful when deleting the current effect. Decrement i and skip the event handling.
-            if (ImGui::Button(label.c_str(), ImVec2{ ImGui::GetContentRegionAvail().x, 0 })) {
-                m_effects.erase(m_effects.begin()+i, m_effects.begin()+i+1);
-                i--;
-                ImGui::PopID();
-                ImGui::PopStyleVar();
-                ImGui::PopStyleColor();
-                continue;
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{style.ItemSpacing.x, style.CellPadding.y * 2});
+            if (ImGui::Selectable(label.c_str(), m_selectedEffect == i, NULL, buttonDims)) {
+                if (m_selectedEffect == i) {
+                    m_selectedEffect = -1;
+                }
+                else {
+                    m_selectedEffect = i;
+                }
             }
-
-            ImGui::PopID();
-            ImGui::PopStyleVar();
-            ImGui::PopStyleColor();
 
             if (ImGui::BeginDragDropTarget()) {
                 const ImVec2 screenPos = ImGui::GetCursorScreenPos();
@@ -160,8 +177,30 @@ void App::DrawGUI() {
                 ImGui::Text(label.c_str());
                 ImGui::EndDragDropSource();
             }
+            
+            ImGui::SetCursorPos({initialPos.x + buttonDims.x * 4/5, initialPos.y});
+            ImGui::SetNextItemAllowOverlap();
+            const ImVec2 delButtonDims{ buttonDims.x / 5, ImGui::GetFrameHeight() - style.FramePadding.y * 2.0f};
+            if (ImGui::Button("X", delButtonDims)) {
+                //We are deleting the currently selected effect
+                if (m_selectedEffect == i) {
+                    m_selectedEffect = -1;
+                }
+                m_effects.erase(m_effects.begin() + i, m_effects.begin() + i + 1);
+                i--;
+                ImGui::PopID();
+                ImGui::PopStyleVar(4);
+                ImGui::PopStyleColor();
+                continue;
+            }
+
+            ImGui::PopID();
+            ImGui::PopStyleVar(4);
+            ImGui::PopStyleColor();
         }
+        ImGui::Dummy({ 0.0f, buttonHeight });
         ImGui::PopStyleVar();
+        ImGui::PopFont();
         ImGui::EndListBox();
     }
     if (ImGui::BeginDragDropTarget()) {
@@ -171,17 +210,25 @@ void App::DrawGUI() {
             m_effects.push_back(*effect);
         }
         ImGui::EndDragDropTarget();
-    }
-    
-    for (int i = 0; const auto & effect : m_effects) {
-        ImGui::PushID(i);
-        effect.effect->DisplayGUIComponent();
-        ImGui::PopID();
-        i++;
+    }    
+    ImGui::EndTable();
+
+    //We know to skip if we set the index to -1.
+    //Still, check to make sure that the index which was set is valid before accessing.
+    if (m_selectedEffect != -1) {
+        try {
+            EffectListItem& effect = m_effects.at(m_selectedEffect);
+            effect.effect->DisplayGUIComponent();
+        }
+        catch (const std::out_of_range& e) {
+            m_selectedEffect = -1;
+        }
     }
 
     ImGui::Dummy(ImVec2(0.0f, 40.0f));
+    ImGui::PushFont(m_gui.GetFont("Heading"));
     ImGui::Text("Outputs");
+    ImGui::PopFont();
     ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
     if (ImGui::Selectable("Spout##Output", m_outputType == OutputType::Spout) && m_outputType != OutputType::Spout) {
@@ -201,7 +248,9 @@ void App::DrawGUI() {
     ImGui::SetNextWindowPos(listPanelPos);
     ImGui::SetNextWindowSize(listPanelDims);
     ImGui::Begin("Effects", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar);
+    ImGui::PushFont(m_gui.GetFont("Heading"));
     ImGui::Text("Effects");
+    ImGui::PopFont();
     ImGui::PushID("EffectList");
 
     ImGui::Button("ASCII");
@@ -235,6 +284,7 @@ void App::DrawGUI() {
     ImGui::SetNextWindowPos(previewPanelPos);
     ImGui::SetNextWindowSize(previewPanelDims);
     ImGui::Begin("Spout Feed", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
+    ImGui::PushFont(m_gui.GetFont("Heading"));
     ImGui::Text("Video Preview:"); ImGui::SameLine();
     if (m_source && m_sender) {
         const float framerate = ImGui::GetIO().Framerate;
@@ -248,9 +298,13 @@ void App::DrawGUI() {
         ImGui::SetCursorPos(ImVec2(initialCursorPos.x + imageDims.x + gap * 2.0f, initialCursorPos.y));
         ImGui::Image((void*)(intptr_t)outputTex.id, imageDims);
     }
+    else {
+        ImGui::Text("Select both an Input and an Output.");
+    }
+    ImGui::PopFont();
     ImGui::End();
 
-    
+    //ImGui::ShowDemoWindow();
 
     ImGui::Render();
     int display_w, display_h;

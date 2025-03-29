@@ -39,6 +39,8 @@ App::App(GLFWwindow* window):
     m_spoutSource.SetParameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     m_spoutSource.SetParameter(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     m_spoutSource.SetParameter(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    m_gui.LoadFont("OpenSans", "res/fonts/opensans/OpenSans-Regular.ttf", 18.0f);
 }
 
 void App::DrawGUI() {

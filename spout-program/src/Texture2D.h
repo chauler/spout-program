@@ -7,7 +7,11 @@ class Texture2D {
 public:
 	Texture2D(GLenum texUnit = GL_TEXTURE0);
 	~Texture2D();
-	void operator=(const Texture2D&) = delete; //If need to copy, implement this so that the existing texture ID is freed correctly.
+	//If we need to copy, implement these to properly handle the existing texture.
+	Texture2D(const Texture2D& other) = delete;
+	Texture2D(const Texture2D&& other) = delete;
+	void operator=(const Texture2D&) = delete;
+
 	void Bind() const;
 	void Unbind() const;
 	unsigned int GetSize() const { return m_w * m_h * m_channels; }

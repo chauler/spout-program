@@ -13,19 +13,29 @@
 #include "sources/SpoutSource.h"
 #include "sources/CamSource.h"
 #include "outputs/VirtualCamera.h"
-#include "gui/SourceCombo.h"
+#include "gui/components/SourceCombo.h"
 #include <outputs/SpoutSender.h>
 #include "effects/ascii_render.h"
 #include "effects/Edges.h"
 #include "effects/Invert.h"
+#include "gui/EffectListItem.h"
+
+static inline void SelectableColor(ImU32 color)
+{
+    ImVec2 p_min = ImGui::GetItemRectMin();
+    ImVec2 p_max = ImGui::GetItemRectMax();
+    ImGui::GetWindowDrawList()->AddRectFilled(p_min, p_max, color);
+}
 
 void IconifyCallback(GLFWwindow* window, int iconified) {
     App::SetIconified(iconified);
 }
 
-App::App(GLFWwindow* window): 
+App::App(GLFWwindow* window) :
     m_window(window),
     m_gui(window),
+    m_listPanel(&m_gui),
+    m_previewPanel(&m_gui, m_spoutSource, outputTex),
     m_effects(std::vector<EffectListItem>{}),
     m_source(nullptr),
     m_sender(nullptr),
@@ -62,24 +72,33 @@ void App::DrawGUI() {
     const ImVec2 mainPanelDims{ window_w / 5.0f, static_cast<float>(window_h)};
     ImGui::SetNextWindowPos(mainPanelPos);
     ImGui::SetNextWindowSize(mainPanelDims);
-    
     ImGui::Begin("Options", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar);
-    
+    ImDrawList* drawList = ImGui::GetWindowDrawList();
+
     ImGui::PushFont(m_gui.GetFont("Heading"));
     ImGui::Text("Inputs");
     ImGui::PopFont();
     ImGui::Dummy(ImVec2(0.0f, 5.0f));
     //Selectable returns true if clicked that frame. Filter for only when *changing* selection
+    drawList->ChannelsSplit(2);
+    drawList->ChannelsSetCurrent(1);
     if (ImGui::Selectable("Spout##Input", m_sourceType == SourceType::Spout) && m_sourceType != SourceType::Spout) {
         m_sourceType = SourceType::Spout;
         currentSourceName = "";
         m_source = std::make_unique<SpoutSource>(currentSourceName);
     }
+    if (!ImGui::IsItemHovered() && !(m_sourceType == SourceType::Spout)) {
+        drawList->ChannelsSetCurrent(0);
+        SelectableColor(ImGui::GetColorU32(ImGuiCol_FrameBg));
+    }
+    drawList->ChannelsMerge();
 
     if (m_sourceType == SourceType::Spout) {
         SourceCombo("Spout Sources", currentSourceName, m_source.get());
     }
 
+    drawList->ChannelsSplit(2);
+    drawList->ChannelsSetCurrent(1);
     if (ImGui::Selectable("Webcam", m_sourceType == SourceType::Webcam)) {
         if (m_sourceType != SourceType::Webcam) {
             ImGui::OpenPopup("Warning");
@@ -88,6 +107,11 @@ void App::DrawGUI() {
             m_source = std::make_unique<CamSource>();
         }
     }
+    if (!ImGui::IsItemHovered() && !(m_sourceType == SourceType::Webcam)) {
+        drawList->ChannelsSetCurrent(0);
+        SelectableColor(ImGui::GetColorU32(ImGuiCol_FrameBg));
+    }
+    drawList->ChannelsMerge();
 
     if (m_sourceType == SourceType::Webcam) {
         if (ImGui::BeginPopupModal("Warning", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
@@ -120,7 +144,6 @@ void App::DrawGUI() {
         for (unsigned int i = 0; i < m_effects.size(); i++) {
             ImGuiStyle& style = ImGui::GetStyle();
             std::string label = m_effects[i].label;
-            ImGui::PushStyleColor(ImGuiCol_Border, ImGui::ColorConvertFloat4ToU32({ 0.5, 0.5, 0.5, 1.0 }));
             ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { style.FramePadding.x, 0.0f });
             ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, { 0.0f, 0.0f });
@@ -144,7 +167,7 @@ void App::DrawGUI() {
                 const ImVec2 screenPos = ImGui::GetCursorScreenPos();
                 const float separatorWidth = 2.0f;
                 if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Effect", ImGuiDragDropFlags_AcceptPeekOnly)) {
-                    ImGui::GetForegroundDrawList()->AddLine({ screenPos.x, screenPos.y - separatorWidth }, { screenPos.x + listBoxDims.x, screenPos.y - separatorWidth }, ImGui::ColorConvertFloat4ToU32({ 1.0, 0.0, 0.0, 1.0 }), separatorWidth);
+                    ImGui::GetForegroundDrawList()->AddLine({ screenPos.x, screenPos.y - separatorWidth }, { screenPos.x + listBoxDims.x, screenPos.y - separatorWidth }, ImGui::GetColorU32(ImGuiCol_DragDropTarget), separatorWidth);
                     if (payload->IsDelivery()) {
                         EffectListItem* effect;
                         memcpy(&effect, payload->Data, payload->DataSize);
@@ -157,7 +180,7 @@ void App::DrawGUI() {
                     if (i < incomingPos) {
                         heightOffset = buttonHeight;
                     }
-                    ImGui::GetForegroundDrawList()->AddLine({ screenPos.x, screenPos.y - heightOffset - separatorWidth}, {screenPos.x + listBoxDims.x, screenPos.y - heightOffset - separatorWidth}, ImGui::ColorConvertFloat4ToU32({1.0, 0.0, 0.0, 1.0}), separatorWidth);
+                    ImGui::GetForegroundDrawList()->AddLine({ screenPos.x, screenPos.y - heightOffset - separatorWidth}, {screenPos.x + listBoxDims.x, screenPos.y - heightOffset - separatorWidth}, ImGui::GetColorU32(ImGuiCol_DragDropTarget), separatorWidth);
                     //We run the whole block whenever the mouse hovers. Then, on mouse release, we run this.
                     if (payload->IsDelivery()) {
                         //Incoming item is being moved earlier in the list, shift right
@@ -190,13 +213,11 @@ void App::DrawGUI() {
                 i--;
                 ImGui::PopID();
                 ImGui::PopStyleVar(4);
-                ImGui::PopStyleColor();
                 continue;
             }
 
             ImGui::PopID();
             ImGui::PopStyleVar(4);
-            ImGui::PopStyleColor();
         }
         ImGui::Dummy({ 0.0f, buttonHeight });
         ImGui::PopStyleVar();
@@ -231,90 +252,39 @@ void App::DrawGUI() {
     ImGui::PopFont();
     ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
+    drawList->ChannelsSplit(2);
+    drawList->ChannelsSetCurrent(1);
     if (ImGui::Selectable("Spout##Output", m_outputType == OutputType::Spout) && m_outputType != OutputType::Spout) {
         m_outputType = OutputType::Spout;
         m_sender = std::make_unique<SpoutEffects::SpoutSender>("Spout Effects");
     }
+    if (!ImGui::IsItemHovered() && !(m_sourceType == SourceType::Spout)) {
+        drawList->ChannelsSetCurrent(0);
+        SelectableColor(ImGui::GetColorU32(ImGuiCol_FrameBg));
+    }
+    drawList->ChannelsMerge();
 
+    drawList->ChannelsSplit(2);
+    drawList->ChannelsSetCurrent(1);
     if (ImGui::Selectable("Virtual Camera", m_outputType == OutputType::VirtualCam) && m_outputType != OutputType::VirtualCam) {
         m_outputType = OutputType::VirtualCam;
         m_sender = std::make_unique<SpoutEffects::VirtualCamera>("Spout Effects");
     }
+    if (!ImGui::IsItemHovered() && !(m_sourceType == SourceType::Spout)) {
+        drawList->ChannelsSetCurrent(0);
+        SelectableColor(ImGui::GetColorU32(ImGuiCol_FrameBg));
+    }
+    drawList->ChannelsMerge();
 
     ImGui::End();
 
-    ImVec2 listPanelPos{mainPanelDims.x, 0.0f};
-    ImVec2 listPanelDims{ std::max(100.f, window_w * 0.1f), static_cast<float>(window_h)};
-    ImGui::SetNextWindowPos(listPanelPos);
-    ImGui::SetNextWindowSize(listPanelDims);
-    ImGui::Begin("Effects", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar);
-    ImGui::PushFont(m_gui.GetFont("Heading"));
-    ImGui::Text("Effects");
-    ImGui::PopFont();
-    ImGui::PushID("EffectList");
+    m_listPanel.pos = {mainPanelDims.x, 0.0f};
+    m_listPanel.size = { std::max(100.f, window_w * 0.1f), static_cast<float>(window_h)};
+    m_listPanel.Render();
 
-    ImGui::Button("ASCII");
-    if (ImGui::IsItemHovered()) {
-        ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
-    }
-    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
-        ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
-        EffectListItem* effect = new EffectListItem{ .effect{new ascii_render()}, .label{"ASCII"} };
-        ImGui::SetDragDropPayload("Effect", &effect, sizeof(effect));
-        ImGui::Text(effect->label.c_str());
-        ImGui::EndDragDropSource();
-    }
-
-    ImGui::Button("Edges");
-    if (ImGui::IsItemHovered()) {
-        ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
-    }
-    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
-        ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
-        EffectListItem* effect = new EffectListItem{ .effect{new Edges()}, .label{"Edges"} };
-        ImGui::SetDragDropPayload("Effect", &effect, sizeof(effect));
-        ImGui::Text(effect->label.c_str());
-        ImGui::EndDragDropSource();
-    }
-
-    ImGui::Button("Invert");
-    if (ImGui::IsItemHovered()) {
-        ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
-    }
-    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
-        ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
-        EffectListItem* effect = new EffectListItem{ .effect{new Invert()}, .label{"Invert"} };
-        ImGui::SetDragDropPayload("Effect", &effect, sizeof(effect));
-        ImGui::Text(effect->label.c_str());
-        ImGui::EndDragDropSource();
-    }
-    ImGui::PopID();
-    ImGui::End();
-
-    const ImVec2 previewPanelPos{listPanelPos.x + listPanelDims.x, 0.0f};
-    const ImVec2 previewPanelDims{ static_cast<float>(window_w) - previewPanelPos.x, static_cast<float>(window_h) };
-    ImGui::SetNextWindowPos(previewPanelPos);
-    ImGui::SetNextWindowSize(previewPanelDims);
-    ImGui::Begin("Spout Feed", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
-    ImGui::PushFont(m_gui.GetFont("Heading"));
-    ImGui::Text("Video Preview:"); ImGui::SameLine();
-    if (m_source && m_sender) {
-        const float framerate = ImGui::GetIO().Framerate;
-        ImGui::Text("size = %d x %d \t | \t %.3f ms/frame (%.1f FPS)", m_source->GetWidth(), m_source->GetHeight(), 1000.0f / framerate, framerate);
-        auto contentSpace = ImGui::GetContentRegionAvail();
-        auto initialCursorPos = ImGui::GetCursorPos();
-        const float gap = 5.0f;
-        const ImVec2 imageDims{contentSpace.x / 2 - gap, contentSpace.y};
-        ImGui::Image((void*)(intptr_t)m_spoutSource.GetID(), imageDims);
-        ImGui::GetForegroundDrawList()->AddLine({previewPanelPos.x+initialCursorPos.x+imageDims.x+gap, initialCursorPos.y}, { previewPanelPos.x+initialCursorPos.x+imageDims.x + gap, initialCursorPos.y+imageDims.y}, ImGui::ColorConvertFloat4ToU32({ 1.0, 0.0, 0.0, 1.0 }), gap);
-        ImGui::SetCursorPos(ImVec2(initialCursorPos.x + imageDims.x + gap * 2.0f, initialCursorPos.y));
-        ImGui::Image((void*)(intptr_t)outputTex.id, imageDims);
-    }
-    else {
-        ImGui::Text("Select both an Input and an Output.");
-    }
-    ImGui::PopFont();
-    ImGui::End();
+    m_previewPanel.pos = {m_listPanel.pos.x + m_listPanel.size.x, 0.0f};
+    m_previewPanel.size = {static_cast<float>(window_w) - m_previewPanel.pos.x, static_cast<float>(window_h)};
+    m_previewPanel.Render();
 
     //ImGui::ShowDemoWindow();
 

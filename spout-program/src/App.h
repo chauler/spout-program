@@ -1,13 +1,16 @@
 #pragma once
+#include <memory>
 #include "SpoutLibrary/SpoutLibrary.h"
 #include "Texture2D.h"
 #include "sources/ISource.h"
 #include "outputs/IOutput.h"
-#include <memory>
 #include "sources/SpoutSource.h"
 #include "effects/IEffect.h"
 #include "effects/Invert.h"
-#include <gui\GuiManager.h>
+#include "gui/GuiManager.h"
+#include "gui/components/EffectListPanel.h"
+#include "gui/components/PreviewPanel.h"
+#include "gui/EffectListItem.h"
 
 enum class SourceType: unsigned int { None, Spout, Webcam };
 enum class OutputType : unsigned int { None, Spout, VirtualCam };
@@ -19,10 +22,6 @@ public:
 	void RunLogic();
 	static void SetIconified(int iconified) { m_iconified = iconified; }
 private:
-	struct EffectListItem {
-		IEffect* effect;
-		std::string label;
-	};
 	inline static int m_iconified = 0;
 
 	//Window management
@@ -46,4 +45,6 @@ private:
 	bool edgesEnabled = false;
 	bool invertEnabled = false;
 	int m_selectedEffect = -1;
+	EffectListPanel m_listPanel;
+	PreviewPanel m_previewPanel;
 };

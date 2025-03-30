@@ -1,15 +1,12 @@
 #include <stdio.h>
+#include <iostream>
 #define GL_SILENCE_DEPRECATION
-#if defined(IMGUI_IMPL_OPENGL_ES2)
-#include <GLES2/gl2.h>
-#endif
 #include <GL/glew.h>
 #include <GLFW/glfw3.h> // Will drag system OpenGL headers
-#include <iostream>
-#include "escapi\escapi.h"
-#include "App.h"
+#include "escapi/escapi.h"
 #include "tracy/public/tracy/Tracy.hpp"
-#include <Renderer.h>
+#include "Renderer.h"
+#include "App.h"
 
 int Main(int, char**);
 GLFWwindow* InitWindow();

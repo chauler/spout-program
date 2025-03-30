@@ -1,8 +1,8 @@
 #pragma once
-#include <GLFW\glfw3.h>
-#include "imgui/imgui.h"
 #include <map>
 #include <string>
+#include <GLFW/glfw3.h>
+#include "imgui/imgui.h"
 
 class GuiManager {
 public:

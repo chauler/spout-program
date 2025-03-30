@@ -8,8 +8,8 @@ class ISource {
 public:
 	virtual void GetNextFrame(GLuint id, GLuint textureTarget) = 0;
 	virtual ~ISource() { }
-	unsigned int GetWidth() { return m_w; }
-	unsigned int GetHeight() { return m_h; }
+	unsigned int GetWidth() const { return m_w; }
+	unsigned int GetHeight() const { return m_h; }
 	virtual void SetTargetName(std::string) = 0;
 	virtual std::vector<std::string> EnumerateTargets() = 0;
 protected:

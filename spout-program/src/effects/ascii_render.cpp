@@ -19,11 +19,11 @@ ascii_render::ascii_render() :
 		.numChars{16},
 		.bgColor{0.0, 0.0, 0.0, 0.0},
 		.charColor{1.0, 1.0, 1.0, 1.0},
-		.epsilon{0.015},
+		.epsilon{0.015f},
 		.phi{200.0},
-		.sigma{0.083},
-		.k{2.26},
-		.p{1.00}
+		.sigma{0.083f},
+		.k{2.26f},
+		.p{1.00f}
 		}),
 	m_charset(m_charSets[m_config.numChars]) 
 {
@@ -177,7 +177,7 @@ SpoutOutTex ascii_render::Draw(unsigned int imageID) {
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_FBO));
 	GLCall(glViewport(0, 0, m_outputW, m_outputH));
 	shader.Bind();
-	GLCall(glUniform2f(shader.GetUniform("imgDims"), ceil(cols / m_config.charSize), ceil(rows / m_config.charSize)));
+	GLCall(glUniform2f(shader.GetUniform("imgDims"), ceilf(cols / m_config.charSize), ceilf(rows / m_config.charSize)));
 	GLCall(glUniform1i(shader.GetUniform("numChars"), m_config.numChars));
 	GLCall(glBindVertexArray(m_VAO));
 	glClear(GL_COLOR_BUFFER_BIT);

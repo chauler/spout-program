@@ -1,11 +1,6 @@
 #pragma once
 #include <any>
-
-struct SpoutOutTex {
-	unsigned int id;
-	unsigned int w;
-	unsigned int h;
-};
+#include "util/types.h"
 
 class IEffect {
 public:

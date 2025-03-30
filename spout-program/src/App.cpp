@@ -167,7 +167,7 @@ void App::DrawGUI() {
                 const ImVec2 screenPos = ImGui::GetCursorScreenPos();
                 const float separatorWidth = 2.0f;
                 if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Effect", ImGuiDragDropFlags_AcceptPeekOnly)) {
-                    ImGui::GetForegroundDrawList()->AddLine({ screenPos.x, screenPos.y - separatorWidth }, { screenPos.x + listBoxDims.x, screenPos.y - separatorWidth }, ImGui::GetColorU32(ImGuiCol_DragDropTarget), separatorWidth);
+                    ImGui::GetForegroundDrawList()->AddLine({ screenPos.x - style.FramePadding.x, screenPos.y - separatorWidth }, { screenPos.x + listBoxDims.x - style.FramePadding.x, screenPos.y - separatorWidth }, ImGui::GetColorU32(ImGuiCol_DragDropTarget), separatorWidth);
                     if (payload->IsDelivery()) {
                         EffectListItem* effect;
                         memcpy(&effect, payload->Data, payload->DataSize);
@@ -180,7 +180,7 @@ void App::DrawGUI() {
                     if (i < incomingPos) {
                         heightOffset = buttonHeight;
                     }
-                    ImGui::GetForegroundDrawList()->AddLine({ screenPos.x, screenPos.y - heightOffset - separatorWidth}, {screenPos.x + listBoxDims.x, screenPos.y - heightOffset - separatorWidth}, ImGui::GetColorU32(ImGuiCol_DragDropTarget), separatorWidth);
+                    ImGui::GetForegroundDrawList()->AddLine({ screenPos.x - style.FramePadding.x, screenPos.y - heightOffset - separatorWidth}, {screenPos.x + listBoxDims.x - style.FramePadding.x, screenPos.y - heightOffset - separatorWidth}, ImGui::GetColorU32(ImGuiCol_DragDropTarget), separatorWidth);
                     //We run the whole block whenever the mouse hovers. Then, on mouse release, we run this.
                     if (payload->IsDelivery()) {
                         //Incoming item is being moved earlier in the list, shift right

@@ -2,8 +2,8 @@
 #include <imgui\imgui.h>
 #include "SourceCombo.h"
 
-void SourceCombo(std::string label, std::string& currentSourceName, ISource* source) {
-    if (ImGui::BeginCombo("Spout Sources", currentSourceName.c_str())) {
+void SourceCombo(const std::string& label, std::string& currentSourceName, ISource* source) {
+    if (ImGui::BeginCombo((label + " Sources").c_str(), currentSourceName.c_str())) {
         std::vector<std::string> spoutSourceList = source->EnumerateTargets();
 
         for (const std::string& sourceName : spoutSourceList) {

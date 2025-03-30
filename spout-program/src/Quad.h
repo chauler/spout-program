@@ -3,7 +3,7 @@
 class Quad {
 public:
 	Quad();
-	const float const* GetVertices() const;
+	const float* const GetVertices() const;
 	void Draw() const;
 
 private:

@@ -4,16 +4,13 @@
 #include "Texture2D.h"
 #include "sources/ISource.h"
 #include "outputs/IOutput.h"
-#include "sources/SpoutSource.h"
 #include "effects/IEffect.h"
 #include "effects/Invert.h"
 #include "gui/GuiManager.h"
 #include "gui/components/EffectListPanel.h"
 #include "gui/components/PreviewPanel.h"
+#include "gui/components/ConfigPanel.h"
 #include "gui/EffectListItem.h"
-
-enum class SourceType: unsigned int { None, Spout, Webcam };
-enum class OutputType : unsigned int { None, Spout, VirtualCam };
 
 class App {
 public:
@@ -29,10 +26,10 @@ private:
 	GuiManager m_gui;
 
     std::vector<EffectListItem> m_effects;
-	std::unique_ptr<ISource> m_source;
-	std::unique_ptr<IOutput> m_sender;
-	SourceType m_sourceType;
-	OutputType m_outputType;
+	//These are pointers in the first palce for the runtime polymorphism. We want this instance to have ownership (source and output will never be
+	//deleted elsewhere) but we want copies of the shared ptr to be able to assign a different object and have that be recognized here.
+	std::shared_ptr<std::unique_ptr<ISource>> m_source;
+	std::shared_ptr<std::unique_ptr<IOutput>> m_sender;
 	Invert m_builtInInversion;
 
 	//GUI State
@@ -41,10 +38,7 @@ private:
 	Texture2D m_spoutSource{};
 	bool popupOpen = false;
 	SpoutOutTex outputTex{};
-	bool asciiEnabled = false;
-	bool edgesEnabled = false;
-	bool invertEnabled = false;
-	int m_selectedEffect = -1;
 	EffectListPanel m_listPanel;
 	PreviewPanel m_previewPanel;
+	ConfigPanel m_configPanel;
 };

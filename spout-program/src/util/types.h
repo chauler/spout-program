@@ -1,6 +1,9 @@
 #pragma once
 #include <string>
 
+enum class SourceType : unsigned int { None, Spout, Webcam };
+enum class OutputType : unsigned int { None, Spout, VirtualCam };
+
 struct iVec2 {
 	int x;
 	int y;

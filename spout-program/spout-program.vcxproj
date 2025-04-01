@@ -104,6 +104,7 @@
     </Link>
     <PostBuildEvent>
       <Command>xcopy /d /y "$(ProjectDir)dlls\*.*" "$(OutDir)"
+xcopy /d /y "$(ProjectDir)softcam\" "$(OutDir)"
 xcopy /S /Y /I "$(ProjectDir)res\" "$(OutDir)res"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -128,6 +129,7 @@ xcopy /S /Y /I "$(ProjectDir)res\" "$(OutDir)res"</Command>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /d /y "$(ProjectDir)dlls\*.*" "$(OutDir)"
+xcopy /d /y "$(ProjectDir)softcam\" "$(OutDir)"
 xcopy /S /Y /I "$(ProjectDir)res\" "$(OutDir)res"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -149,6 +151,7 @@ xcopy /S /Y /I "$(ProjectDir)res\" "$(OutDir)res"</Command>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /d /y "$(ProjectDir)dlls\*.*" "$(OutDir)"
+xcopy /d /y "$(ProjectDir)softcam\" "$(OutDir)"
 xcopy /S /Y /I "$(ProjectDir)res\" "$(OutDir)res"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -173,6 +176,7 @@ xcopy /S /Y /I "$(ProjectDir)res\" "$(OutDir)res"</Command>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /d /y "$(ProjectDir)dlls\*.*" "$(OutDir)"
+xcopy /d /y "$(ProjectDir)softcam\" "$(OutDir)"
 xcopy /S /Y /I "$(ProjectDir)res\" "$(OutDir)res"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>

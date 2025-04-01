@@ -2,7 +2,7 @@
 
 pushd %~dp0
 set INSTALLER=softcam_installer.exe
-set TARGET=dlls\softcam.dll
+set TARGET=softcam.dll
 
 echo ################################################################
 echo Softcam Installer (softcam_installer.exe) will uninstall Softcam
@@ -22,4 +22,4 @@ if %ERRORLEVEL% == 0 (
   echo.
 )
 popd
-pause
+::pause

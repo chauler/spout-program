@@ -18,7 +18,7 @@
 #include "effects/Edges.h"
 #include "effects/Invert.h"
 #include "gui/EffectListItem.h"
-#include "util/util.h"
+#include "sources/CamInstall.h"
 
 void IconifyCallback(GLFWwindow* window, int iconified) {
     App::SetIconified(iconified);

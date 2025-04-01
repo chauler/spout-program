@@ -1,3 +1,6 @@
 [submodule "spout-program/src/vendor/tracy"]
 	path = spout-program/src/vendor/tracy
 	url = https://github.com/wolfpld/tracy.git
+[submodule "spout-program/src/vendor/softcam"]
+	path = spout-program/src/vendor/softcam
+	url = https://github.com/tshino/softcam.git

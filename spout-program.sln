@@ -6,6 +6,7 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spout-program", "spout-program\spout-program.vcxproj", "{F5E4058A-FA6A-415B-AF0C-5A8D31BCFB86}"
 	ProjectSection(ProjectDependencies) = postProject
 		{52968D29-AA5F-41A4-BF1E-4C50F1098373} = {52968D29-AA5F-41A4-BF1E-4C50F1098373}
+		{E4AAAD55-82B8-43FE-AC1F-4F2C87EC4A75} = {E4AAAD55-82B8-43FE-AC1F-4F2C87EC4A75}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "softcam", "spout-program\src\vendor\softcam\src\softcam\softcam.vcxproj", "{52968D29-AA5F-41A4-BF1E-4C50F1098373}"
@@ -13,6 +14,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BaseClasses", "spout-program\src\vendor\softcam\src\baseclasses\BaseClasses.vcxproj", "{E8A3F6FA-AE1C-4C8E-A0B6-9C8480324EAA}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "softcamcore", "spout-program\src\vendor\softcam\src\softcamcore\softcamcore.vcxproj", "{DF9D5A2D-3BED-4D1A-8484-22A654C9AD76}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SoftcamInstaller", "SoftcamInstaller\SoftcamInstaller.vcxproj", "{E4AAAD55-82B8-43FE-AC1F-4F2C87EC4A75}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -54,6 +57,14 @@ Global
 		{DF9D5A2D-3BED-4D1A-8484-22A654C9AD76}.Release|x64.Build.0 = Release|x64
 		{DF9D5A2D-3BED-4D1A-8484-22A654C9AD76}.Release|x86.ActiveCfg = Release|Win32
 		{DF9D5A2D-3BED-4D1A-8484-22A654C9AD76}.Release|x86.Build.0 = Release|Win32
+		{E4AAAD55-82B8-43FE-AC1F-4F2C87EC4A75}.Debug|x64.ActiveCfg = Debug|x64
+		{E4AAAD55-82B8-43FE-AC1F-4F2C87EC4A75}.Debug|x64.Build.0 = Debug|x64
+		{E4AAAD55-82B8-43FE-AC1F-4F2C87EC4A75}.Debug|x86.ActiveCfg = Debug|Win32
+		{E4AAAD55-82B8-43FE-AC1F-4F2C87EC4A75}.Debug|x86.Build.0 = Debug|Win32
+		{E4AAAD55-82B8-43FE-AC1F-4F2C87EC4A75}.Release|x64.ActiveCfg = Release|x64
+		{E4AAAD55-82B8-43FE-AC1F-4F2C87EC4A75}.Release|x64.Build.0 = Release|x64
+		{E4AAAD55-82B8-43FE-AC1F-4F2C87EC4A75}.Release|x86.ActiveCfg = Release|Win32
+		{E4AAAD55-82B8-43FE-AC1F-4F2C87EC4A75}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

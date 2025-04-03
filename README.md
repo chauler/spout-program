@@ -17,4 +17,4 @@ to discuss what you would like to change.
 
 ## License
 
-This project uses Unlicense.
+This project uses Unlicense. Dependencies may use other licenses.

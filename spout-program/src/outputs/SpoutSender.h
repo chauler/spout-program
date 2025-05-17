@@ -10,6 +10,7 @@ namespace SpoutEffects {
 		~SpoutSender() { m_sender->ReleaseSender(); }
 		void SendTexture(unsigned int textureID, unsigned int width, unsigned int height) override;
 		void SetTargetName(const std::string& name) override;
+		std::string GetTargetName() const override;
 	private:
 		std::unique_ptr<::SpoutSender> m_sender;
 	};

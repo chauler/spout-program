@@ -18,7 +18,6 @@
 #include "effects/Edges.h"
 #include "effects/Invert.h"
 #include "gui/EffectListItem.h"
-#include "util/util.h"
 
 void IconifyCallback(GLFWwindow* window, int iconified) {
     App::SetIconified(iconified);
@@ -35,7 +34,6 @@ App::App(GLFWwindow* window) :
     m_effects(std::vector<EffectListItem>{}),
     m_builtInInversion()
 {
-    RegisterSoftcam();
     glfwSetWindowIconifyCallback(window, IconifyCallback);
     m_spoutSource.Allocate(GL_RGBA, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE,  0);
     m_spoutSource.SetParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR);

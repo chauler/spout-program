@@ -2,6 +2,7 @@
 #include <string>
 #include <cstring>
 #include <cstdio>
+#include <iostream>
 
 
 void Message(const std::string& message)
@@ -49,7 +50,7 @@ int WINAPI WinMain(
     LPSTR /*lpszCmdLine*/,
     int /*nCmdShow*/)
 {
-    if (__argc != 3)
+    if (__argc < 3)
     {
         Message(
             "Usage:\n"
@@ -62,19 +63,39 @@ int WINAPI WinMain(
 
     if (cmd == "register")
     {
-        auto hmod = LoadDLL(path);
-        auto RegisterServer = GetProc<HRESULT STDAPICALLTYPE()>(hmod, "DllRegisterServer");
-
-        auto hr = RegisterServer();
-
-        if (FAILED(hr))
+        std::string name;
+        for (int i = 3; i < __argc; i++) {
+            name += __argv[i];
+        }
+        STARTUPINFOA si;
+        PROCESS_INFORMATION pi;
+        ZeroMemory(&si, sizeof(si));
+        si.cb = sizeof(si);
+        ZeroMemory(&pi, sizeof(pi));
+        if (!CreateProcessA(
+            NULL,//"C:\\Windows\\system32\\cmd.exe", // Path to the executable
+            const_cast<LPSTR>(("regsvr32 \"" + path + "\" \"/i:name='" + name + "'\"").c_str()),           // Command line arguments
+            NULL,           // Process handle not inheritable
+            NULL,           // Thread handle not inheritable
+            FALSE,          // Set handle inheritance to FALSE
+            NULL/*CREATE_NO_WINDOW*/,// No creation flags
+            NULL,           // Use parent's environment block
+            NULL,           // Use parent's starting directory 
+            &si,            // Pointer to STARTUPINFO structure
+            &pi)            // Pointer to PROCESS_INFORMATION structure
+            )
         {
-            Message("Error: registration failed (" + ToHex(hr) + ")");
+            std::cerr << "CreateProcess failed (" << GetLastError() << ")\n";
+            std::string test;
+            std::cin >> test;
             return 1;
         }
+        // Optionally wait for the process to finish
+        WaitForSingleObject(pi.hProcess, INFINITE);
 
-        Message("softcam.dll has been successfully registered to the system");
-        return 0;
+        // Close process and thread handles
+        CloseHandle(pi.hProcess);
+        CloseHandle(pi.hThread);
     }
     else if (cmd == "unregister")
     {

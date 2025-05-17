@@ -55,5 +55,70 @@ void SpoutEffects::VirtualCamera::SendTexture(unsigned int id, unsigned int widt
 }
 
 void SpoutEffects::VirtualCamera::SetTargetName(const std::string& name) {
-    return;
+	if (m_name == name) {
+		return;
+	}
+
+    DeregisterSoftcam();
+	if (m_camera) {
+		scDeleteCamera(m_camera);
+	}
+
+    m_name = name;
+	RegisterSoftcam(m_name);
+	m_camera = scCreateCamera(m_w, m_h, 60);
+}
+
+std::string SpoutEffects::VirtualCamera::GetTargetName() const {
+	return m_name;
+}
+
+int SpoutEffects::VirtualCamera::ExecSoftcamInstaller(const std::string& args) {
+    STARTUPINFOA si;
+    PROCESS_INFORMATION pi;
+
+    ZeroMemory(&si, sizeof(si));
+    si.cb = sizeof(si);
+    ZeroMemory(&pi, sizeof(pi));
+    if (!CreateProcessA(
+        "C:\\Windows\\system32\\cmd.exe", // Path to the executable
+        const_cast<LPSTR>(args.c_str()),           // Command line arguments
+        NULL,           // Process handle not inheritable
+        NULL,           // Thread handle not inheritable
+        FALSE,          // Set handle inheritance to FALSE
+        NULL/*CREATE_NO_WINDOW*/,// No creation flags
+        NULL,           // Use parent's environment block
+        NULL,           // Use parent's starting directory 
+        &si,            // Pointer to STARTUPINFO structure
+        &pi)            // Pointer to PROCESS_INFORMATION structure
+        )
+    {
+        std::cerr << "CreateProcess failed (" << GetLastError() << ")\n";
+        return 1;
+    }
+
+    std::cout << args << std::endl;
+    std::cout << "Process created with ID: " << pi.dwProcessId << std::endl;
+
+    // Optionally wait for the process to finish
+    WaitForSingleObject(pi.hProcess, INFINITE);
+
+    // Close process and thread handles
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+	return 0;
+}
+
+#if defined(DEBUG)
+#define DLL_PATH "softcamd.dll"
+#else
+#define DLL_PATH "softcam.dll"
+#endif
+
+int SpoutEffects::VirtualCamera::RegisterSoftcam(const std::string name) {
+    return ExecSoftcamInstaller("cmd /c SoftcamInstaller.exe register " DLL_PATH " \"" + name + "\"");
+}
+
+int SpoutEffects::VirtualCamera::DeregisterSoftcam() {
+    return ExecSoftcamInstaller("cmd /c SoftcamInstaller.exe unregister " DLL_PATH);
 }

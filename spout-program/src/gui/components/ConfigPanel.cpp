@@ -12,6 +12,20 @@
 #include "outputs/SpoutSender.h"
 #include "outputs/VirtualCamera.h"
 
+struct InputTextCallback_UserData {
+	std::string* str;
+};
+
+static int InputTextCallback(ImGuiInputTextCallbackData* data) {
+	auto userData = (InputTextCallback_UserData*)data->UserData;
+	if (data->EventFlag == ImGuiInputTextFlags_CallbackResize) {
+		std::string* str = userData->str;
+		str->resize(data->BufTextLen);
+		data->Buf = str->data();
+	}
+    return 0;
+}
+
 static inline void DrawSelectableBg(ImU32 color)
 {
     ImVec2 p_min = ImGui::GetItemRectMin();
@@ -22,6 +36,7 @@ static inline void DrawSelectableBg(ImU32 color)
 ConfigPanel::ConfigPanel(GuiManager* const gui, std::weak_ptr<std::unique_ptr<ISource>> source, std::weak_ptr<std::unique_ptr<IOutput>> output, std::vector<EffectListItem>& effects) :
     m_gui(gui),
     m_currentSourceName(),
+	m_currentOutputName(),
     m_sourceType(SourceType::None),
     m_outputType(OutputType::None),
     m_source(source),
@@ -31,7 +46,7 @@ ConfigPanel::ConfigPanel(GuiManager* const gui, std::weak_ptr<std::unique_ptr<IS
 
 }
 
-template<typename T>
+template<Source T>
 void ConfigPanel::DrawInputComponent(const std::string& label, const SourceType componentType) {
     ImDrawList* drawList = ImGui::GetWindowDrawList();
     drawList->ChannelsSplit(2);
@@ -59,7 +74,7 @@ void ConfigPanel::DrawInputComponent(const std::string& label, const SourceType 
     }
 }
 
-template<typename T>
+template<Output T>
 void ConfigPanel::DrawOutputComponent(const std::string& label, const OutputType componentType) {
     ImDrawList* drawList = ImGui::GetWindowDrawList();
     drawList->ChannelsSplit(2);
@@ -75,6 +90,22 @@ void ConfigPanel::DrawOutputComponent(const std::string& label, const OutputType
         DrawSelectableBg(ImGui::GetColorU32(ImGuiCol_FrameBg));
     }
     drawList->ChannelsMerge();
+
+	if (m_outputType == componentType) {
+		// Display editable text box for the output name
+		ImGuiInputTextFlags flags = ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackResize;
+        InputTextCallback_UserData data = {&m_currentOutputName};
+        if (ImGui::InputText("Name:##OutputName", m_currentOutputName.data(), m_currentOutputName.capacity() + 1, flags, InputTextCallback, &data)) {
+			std::cout << "Output name changed to: " << m_currentOutputName << std::endl;
+			// If the name is changed, update the output name
+            if (auto sender = m_sender.lock()) {
+				if (m_currentOutputName.empty()) {
+					m_currentOutputName = "Spout Effects";
+				}
+                (*sender)->SetTargetName(m_currentOutputName);
+            }
+        }
+	}
 }
 
 void ConfigPanel::Render() {

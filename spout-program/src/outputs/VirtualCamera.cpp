@@ -80,7 +80,7 @@ int SpoutEffects::VirtualCamera::ExecSoftcamInstaller(const std::string& args) {
         NULL,           // Process handle not inheritable
         NULL,           // Thread handle not inheritable
         FALSE,          // Set handle inheritance to FALSE
-        NULL/*CREATE_NO_WINDOW*/,// No creation flags
+        CREATE_NO_WINDOW,// No creation flags
         NULL,           // Use parent's environment block
         NULL,           // Use parent's starting directory 
         &si,            // Pointer to STARTUPINFO structure

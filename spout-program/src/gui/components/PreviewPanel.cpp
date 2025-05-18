@@ -22,7 +22,7 @@ void PreviewPanel::Render() {
         ImGui::Image(m_sourceTex.GetID(), imageDims);
         ImGui::GetForegroundDrawList()->AddLine({ pos.x + initialCursorPos.x + imageDims.x + gap, initialCursorPos.y }, { pos.x + initialCursorPos.x + imageDims.x + gap, initialCursorPos.y + imageDims.y }, ImGui::GetColorU32(ImGuiCol_HeaderHovered), gap);
         ImGui::SetCursorPos(ImVec2(initialCursorPos.x + imageDims.x + gap * 2.0f, initialCursorPos.y));
-        ImGui::Image(m_outputTex.id, imageDims, {0, 1}, {1, 0});
+        ImGui::Image(m_outputTex.id, imageDims);
     }
     else {
         ImGui::Text("Select both an Input and an Output.");

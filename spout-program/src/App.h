@@ -30,7 +30,6 @@ private:
 	//deleted elsewhere) but we want copies of the shared ptr to be able to assign a different object and have that be recognized here.
 	std::shared_ptr<std::unique_ptr<ISource>> m_source;
 	std::shared_ptr<std::unique_ptr<IOutput>> m_sender;
-	Invert m_builtInInversion;
 
 	//GUI State
 	unsigned int spoutSourceID = 0;

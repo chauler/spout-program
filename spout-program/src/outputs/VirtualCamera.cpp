@@ -59,14 +59,8 @@ void SpoutEffects::VirtualCamera::SetTargetName(const std::string& name) {
 		return;
 	}
 
-    DeregisterSoftcam();
-	if (m_camera) {
-		scDeleteCamera(m_camera);
-	}
-
     m_name = name;
 	RegisterSoftcam(m_name);
-	m_camera = scCreateCamera(m_w, m_h, 60);
 }
 
 std::string SpoutEffects::VirtualCamera::GetTargetName() const {

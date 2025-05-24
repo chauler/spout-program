@@ -14,8 +14,8 @@ Edges::Edges() :
 		.p{1.00}
 	})
 {
-	shader.AddShader(GL_VERTEX_SHADER, ReadFile("res/shaders/edge.vs"));
-	shader.AddShader(GL_FRAGMENT_SHADER, ReadFile("res/shaders/gaussian.fs"));
+	shader.AddShader(GL_VERTEX_SHADER, SpoutProgram::Util::ReadFile("res/shaders/edge.vs"));
+	shader.AddShader(GL_FRAGMENT_SHADER, SpoutProgram::Util::ReadFile("res/shaders/gaussian.fs"));
 	shader.CompileShader();
 
 	GLCall(glGenFramebuffers(1, &m_FBO));

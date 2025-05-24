@@ -5,6 +5,7 @@
 #include "gui/components/Window.h"
 #include "util/types.h"
 
+namespace SpoutProgram::Gui {
 class PreviewPanel : public Window {
 public:
 	PreviewPanel(GuiManager* const gui, const Texture2D& sourceTex, const SpoutOutTex& m_outputTex);
@@ -14,3 +15,4 @@ private:
 	const Texture2D& m_sourceTex;
 	const SpoutOutTex& m_outputTex;
 };
+}

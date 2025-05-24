@@ -7,8 +7,8 @@ Invert::Invert() :
 	m_fullscreenQuad(),
 	m_prevDimensions({ 0, 0 })
 {
-	shader.AddShader(GL_VERTEX_SHADER, ReadFile("res/shaders/invert.vs"));
-	shader.AddShader(GL_FRAGMENT_SHADER, ReadFile("res/shaders/invert.fs"));
+	shader.AddShader(GL_VERTEX_SHADER, SpoutProgram::Util::ReadFile("res/shaders/invert.vs"));
+	shader.AddShader(GL_FRAGMENT_SHADER, SpoutProgram::Util::ReadFile("res/shaders/invert.fs"));
 	shader.CompileShader();
 
 	GLCall(glGenFramebuffers(1, &m_FBO));

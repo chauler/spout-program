@@ -31,7 +31,7 @@ ascii_render::ascii_render() :
 	m_face = fontLoader.GetFace();
 	LoadCharacterData(m_config.charSize);
 
-	std::string computeShaderSource = ParseComputeShader(ReadFile("res/shaders/compute.cs"), m_config.charSize, m_config.charSize, 1);
+	std::string computeShaderSource = ParseComputeShader(SpoutProgram::Util::ReadFile("res/shaders/compute.cs"), m_config.charSize, m_config.charSize, 1);
 	computeShader.AddShader(GL_COMPUTE_SHADER, computeShaderSource);
 	computeShader.CompileShader();
 	GLCall(glGenTextures(1, &m_computeShaderOutput));
@@ -41,15 +41,15 @@ ascii_render::ascii_render() :
 	GLCall(glBindImageTexture(0, m_computeShaderOutput, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8UI));
 	GLCall(glBindTexture(GL_TEXTURE_2D, 0));
 
-	sobelShader.AddShader(GL_VERTEX_SHADER, ReadFile("res/shaders/edge.vs"));
-	sobelShader.AddShader(GL_FRAGMENT_SHADER, ReadFile("res/shaders/edge.fs"));
+	sobelShader.AddShader(GL_VERTEX_SHADER, SpoutProgram::Util::ReadFile("res/shaders/edge.vs"));
+	sobelShader.AddShader(GL_FRAGMENT_SHADER, SpoutProgram::Util::ReadFile("res/shaders/edge.fs"));
 	sobelShader.CompileShader();
-	dGaussianShader.AddShader(GL_VERTEX_SHADER, ReadFile("res/shaders/edge.vs"));
-	dGaussianShader.AddShader(GL_FRAGMENT_SHADER, ReadFile("res/shaders/gaussian.fs"));
+	dGaussianShader.AddShader(GL_VERTEX_SHADER, SpoutProgram::Util::ReadFile("res/shaders/edge.vs"));
+	dGaussianShader.AddShader(GL_FRAGMENT_SHADER, SpoutProgram::Util::ReadFile("res/shaders/gaussian.fs"));
 	dGaussianShader.CompileShader();
 
-	shader.AddShader(GL_VERTEX_SHADER, ReadFile("res/shaders/text.vs"));
-	shader.AddShader(GL_FRAGMENT_SHADER, ReadFile("res/shaders/text.fs"));
+	shader.AddShader(GL_VERTEX_SHADER, SpoutProgram::Util::ReadFile("res/shaders/text.vs"));
+	shader.AddShader(GL_FRAGMENT_SHADER, SpoutProgram::Util::ReadFile("res/shaders/text.fs"));
 	shader.CompileShader();
 	shader.Bind();
 	GLCall(glUniform4f(shader.GetUniform("bgColor"), m_config.bgColor[0], m_config.bgColor[1], m_config.bgColor[2], m_config.bgColor[3]));
@@ -273,7 +273,7 @@ void ascii_render::UpdateState(const std::any& input) {
 	if (state.charSize != m_config.charSize) {
 		m_config.charSize = state.charSize;
 		GLCall(glProgramUniform1i(shader.GetProgram(), shader.GetUniform("charSize"), m_config.charSize));
-		std::string computeShaderSource = ParseComputeShader(ReadFile("res/shaders/compute.cs"), m_config.charSize, m_config.charSize, 1);
+		std::string computeShaderSource = ParseComputeShader(SpoutProgram::Util::ReadFile("res/shaders/compute.cs"), m_config.charSize, m_config.charSize, 1);
 		Shader temp = Shader();
 		temp.AddShader(GL_COMPUTE_SHADER, computeShaderSource);
 		temp.CompileShader();
@@ -309,7 +309,7 @@ void ascii_render::DisplayGUIComponent() {
 	const unsigned int max = 32;
 	if (ImGui::SliderScalar("Char Size", ImGuiDataType_U32, &m_config.charSize, &min, &max, "%d", ImGuiSliderFlags_AlwaysClamp)) {
 		GLCall(glProgramUniform1i(shader.GetProgram(), shader.GetUniform("charSize"), m_config.charSize));
-		std::string computeShaderSource = ParseComputeShader(ReadFile("res/shaders/compute.cs"), m_config.charSize, m_config.charSize, 1);
+		std::string computeShaderSource = ParseComputeShader(SpoutProgram::Util::ReadFile("res/shaders/compute.cs"), m_config.charSize, m_config.charSize, 1);
 		Shader temp = Shader();
 		temp.AddShader(GL_COMPUTE_SHADER, computeShaderSource);
 		temp.CompileShader();

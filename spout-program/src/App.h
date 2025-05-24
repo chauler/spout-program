@@ -38,6 +38,6 @@ private:
 	bool popupOpen = false;
 	SpoutOutTex outputTex{};
 	EffectListPanel m_listPanel;
-	PreviewPanel m_previewPanel;
+	SpoutProgram::Gui::PreviewPanel m_previewPanel;
 	ConfigPanel m_configPanel;
 };

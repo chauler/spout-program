@@ -70,7 +70,9 @@ void App::DrawGUI() {
     m_previewPanel.size = {static_cast<float>(window_w) - m_previewPanel.pos.x, static_cast<float>(window_h)};
     m_previewPanel.Render();
 
-    //ImGui::ShowDemoWindow();
+#if defined(DEBUG)
+    ImGui::ShowDemoWindow();
+#endif
 
     ImGui::Render();
     int display_w, display_h;

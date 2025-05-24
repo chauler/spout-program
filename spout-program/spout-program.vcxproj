@@ -193,6 +193,7 @@ xcopy /S /Y /I "$(ProjectDir)res\" "$(OutDir)res"</Command>
     <ClCompile Include="src\gui\components\ConfigPanel.cpp" />
     <ClCompile Include="src\gui\components\EffectListPanel.cpp" />
     <ClCompile Include="src\gui\components\PreviewPanel.cpp" />
+    <ClCompile Include="src\gui\components\TextBox.cpp" />
     <ClCompile Include="src\gui\GuiManager.cpp" />
     <ClCompile Include="src\gui\components\SourceCombo.cpp" />
     <ClCompile Include="src\outputs\IOutput.h" />
@@ -227,6 +228,7 @@ xcopy /S /Y /I "$(ProjectDir)res\" "$(OutDir)res"</Command>
     <ClInclude Include="src\FontLoader.h" />
     <ClInclude Include="src\gui\components\ConfigPanel.h" />
     <ClInclude Include="src\gui\components\EffectListPanel.h" />
+    <ClInclude Include="src\gui\components\TextBox.h" />
     <ClInclude Include="src\gui\components\Window.h" />
     <ClInclude Include="src\gui\components\PreviewPanel.h" />
     <ClInclude Include="src\gui\EffectListItem.h" />

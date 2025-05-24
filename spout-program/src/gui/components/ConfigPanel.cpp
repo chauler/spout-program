@@ -11,20 +11,7 @@
 #include "sources/CamSource.h"
 #include "outputs/SpoutSender.h"
 #include "outputs/VirtualCamera.h"
-
-struct InputTextCallback_UserData {
-	std::string* str;
-};
-
-static int InputTextCallback(ImGuiInputTextCallbackData* data) {
-	auto userData = (InputTextCallback_UserData*)data->UserData;
-	if (data->EventFlag == ImGuiInputTextFlags_CallbackResize) {
-		std::string* str = userData->str;
-		str->resize(data->BufTextLen);
-		data->Buf = str->data();
-	}
-    return 0;
-}
+#include "./TextBox.h"
 
 static inline void DrawSelectableBg(ImU32 color)
 {
@@ -93,9 +80,9 @@ void ConfigPanel::DrawOutputComponent(const std::string& label, const OutputType
 
 	if (m_outputType == componentType) {
 		// Display editable text box for the output name
-		ImGuiInputTextFlags flags = ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackResize;
-        InputTextCallback_UserData data = {&m_currentOutputName};
-        if (ImGui::InputText("Name:##OutputName", m_currentOutputName.data(), m_currentOutputName.capacity() + 1, flags, InputTextCallback, &data)) {
+		ImGuiInputTextFlags flags = ImGuiInputTextFlags_EnterReturnsTrue;
+        std::unique_ptr<SpoutProgram::Gui::InputTextCallback_UserData> data = std::make_unique<SpoutProgram::Gui::InputTextCallback_UserData>(&m_currentOutputName);
+        if (SpoutProgram::Gui::TextBox("Name:##OutputName", m_currentOutputName.data(), m_currentOutputName.capacity() + 1, flags, data.get())) {
 			std::cout << "Output name changed to: " << m_currentOutputName << std::endl;
 			// If the name is changed, update the output name
             if (auto sender = m_sender.lock()) {

@@ -31,7 +31,8 @@ App::App(GLFWwindow* window) :
     m_listPanel(&m_gui),
     m_previewPanel(&m_gui, m_spoutSource, outputTex),
     m_configPanel(&m_gui, m_source, m_sender, m_effects),
-    m_effects(std::vector<EffectListItem>{})
+    m_effects(std::vector<EffectListItem>{}),
+	m_builtInInversion()
 {
     glfwSetWindowIconifyCallback(window, IconifyCallback);
     m_spoutSource.Allocate(GL_RGBA, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE,  0);
@@ -101,5 +102,7 @@ void App::RunLogic() {
         outputTex = effect.effect->Draw(outputTex.id);
     }
 
+    //Do not remove this - other applications see our output as flipped unless we do this.
+	outputTex = m_builtInInversion.Draw(outputTex.id);
     (*m_sender)->SendTexture(outputTex.id, outputTex.w, outputTex.h);
 }

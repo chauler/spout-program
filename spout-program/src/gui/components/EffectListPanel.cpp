@@ -28,6 +28,11 @@ static void DrawComponent(const std::string& label) {
 void EffectListPanel::Render() {
     ImGui::SetNextWindowPos(pos);
     ImGui::SetNextWindowSize(size);
+	//Make the background translucent gray
+	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.2f, 0.2f, 0.2f, 0.8f));
+	ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
+	//Round the Window borders
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 2.0f);
     ImGui::Begin("Effects", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar);
     ImGui::PushFont(m_gui->GetFont("Heading"));
     ImGui::Text("Effects");
@@ -38,8 +43,10 @@ void EffectListPanel::Render() {
     DrawComponent<Edges>("Edges");
     DrawComponent<Invert>("Invert");
 
+	ImGui::PopStyleColor();
+	ImGui::PopStyleColor();
+	ImGui::PopStyleVar();
     ImGui::PopID();
     ImGui::End();
     //ImGui::GetForegroundDrawList()->AddLine({ pos.x + initialCursorPos.x + imageDims.x + gap, initialCursorPos.y }, { pos.x + initialCursorPos.x + imageDims.x + gap, initialCursorPos.y + imageDims.y }, ImGui::ColorConvertFloat4ToU32({ 1.0, 0.0, 0.0, 1.0 }), gap);
-
 }

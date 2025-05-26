@@ -52,7 +52,7 @@ void SpoutProgram::Gui::PreviewPanel::Render() {
 			imageDims.x = m_outputTex.w * scaleFactor;
 			imageDims.y = m_outputTex.h * scaleFactor;
 		}
-        ImGui::Image(m_outputTex.id, imageDims);
+        ImGui::Image(m_outputTex.id, imageDims, {0, 1}, {1, 0});
 		ImGui::EndChild();
 	}
     else {

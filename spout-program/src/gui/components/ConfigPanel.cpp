@@ -98,6 +98,12 @@ void ConfigPanel::DrawOutputComponent(const std::string& label, const OutputType
 void ConfigPanel::Render() {
     ImGui::SetNextWindowPos(pos);
     ImGui::SetNextWindowSize(size);
+    //Make the background translucent gray
+	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.2f, 0.2f, 0.2f, 0.8f));
+    //Round the Window borders
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 2.0f);
+	ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
+
     ImGui::Begin("Options", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar);
     ImDrawList* drawList = ImGui::GetWindowDrawList();
 
@@ -240,6 +246,8 @@ void ConfigPanel::Render() {
     ImGui::Dummy(ImVec2(0.0f, 5.0f));
     DrawOutputComponent<SpoutEffects::SpoutSender>("Spout", OutputType::Spout);
     DrawOutputComponent<SpoutEffects::VirtualCamera>("Virtual Camera", OutputType::VirtualCam);
-    
+    ImGui::PopStyleVar();
+    ImGui::PopStyleColor();
+    ImGui::PopStyleColor();
     ImGui::End();
 }

@@ -228,6 +228,7 @@ xcopy /S /Y /I "$(ProjectDir)res\" "$(OutDir)res"</Command>
     <ClInclude Include="src\FontLoader.h" />
     <ClInclude Include="src\gui\components\ConfigPanel.h" />
     <ClInclude Include="src\gui\components\EffectListPanel.h" />
+    <ClInclude Include="src\gui\components\LabeledWidget.h" />
     <ClInclude Include="src\gui\components\TextBox.h" />
     <ClInclude Include="src\gui\components\Window.h" />
     <ClInclude Include="src\gui\components\PreviewPanel.h" />

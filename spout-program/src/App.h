@@ -39,6 +39,6 @@ private:
 	SpoutOutTex outputTex{};
 	EffectListPanel m_listPanel;
 	SpoutProgram::Gui::PreviewPanel m_previewPanel;
-	ConfigPanel m_configPanel;
+	SpoutProgram::Gui::ConfigPanel m_configPanel;
 	Invert m_builtInInversion;
 };
